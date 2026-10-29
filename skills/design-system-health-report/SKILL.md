@@ -19,7 +19,7 @@ A weekly summary of what changed, what broke and what to fix next, ready to post
 
 ## Before you start
 
-This skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=design-system-health-report) and stop.
+This skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to [connect Supernova](https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=design-system-health-report) first and stop.
 
 ## Tools
 

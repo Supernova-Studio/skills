@@ -19,7 +19,7 @@ Find every hardcoded colour, spacing and radius value in your repository and mat
 
 ## Before you start
 
-This skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=match-code-to-tokens) and stop.
+This skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to [connect Supernova](https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=match-code-to-tokens) first and stop.
 
 ## Tools
 
