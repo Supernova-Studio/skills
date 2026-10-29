@@ -1,0 +1,19 @@
+name: Release skills
+on:
+  push:
+    branches: [main]
+    paths: ['skills/**']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/build-index.mjs --check
+      - run: node scripts/release.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}

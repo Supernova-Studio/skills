@@ -1,0 +1,13 @@
+{
+  "name": "supernova",
+  "version": "0.1.0",
+  "description": "Design system skills for Supernova, with the Supernova MCP server.",
+  "author": {
+    "name": "Supernova",
+    "url": "https://www.supernova.io"
+  },
+  "homepage": "https://www.supernova.io/mcp/skills",
+  "repository": "https://github.com/Supernova-Studio/skills",
+  "license": "MIT",
+  "privacyPolicyUrl": "https://www.supernova.io/legal/privacy-policy"
+}

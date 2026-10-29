@@ -1,0 +1,17 @@
+{
+  "name": "supernova",
+  "owner": {
+    "name": "Supernova",
+    "url": "https://www.supernova.io"
+  },
+  "metadata": {
+    "description": "Skills for managing and using your design system with Supernova."
+  },
+  "plugins": [
+    {
+      "name": "supernova",
+      "source": "./",
+      "description": "Design system skills for Supernova: set up, audit, maintain, create and improve."
+    }
+  ]
+}

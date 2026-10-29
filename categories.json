@@ -1,0 +1,27 @@
+[
+  {
+    "key": "setup",
+    "label": "Get set up",
+    "blurb": "Bring what you already have into Supernova, then let the agent build the structure."
+  },
+  {
+    "key": "audit",
+    "label": "Audit what you have",
+    "blurb": "See what is inconsistent, missing or drifting before you change anything."
+  },
+  {
+    "key": "maintain",
+    "label": "Maintain at scale",
+    "blurb": "One prompt, every page. The work that used to take a list and a week."
+  },
+  {
+    "key": "create",
+    "label": "Create and reuse",
+    "blurb": "Start from a page you already trust instead of a blank one."
+  },
+  {
+    "key": "improve",
+    "label": "Measure and improve",
+    "blurb": "Know what changed, who uses the system and what to fix next."
+  }
+]

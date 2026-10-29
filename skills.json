@@ -1,0 +1,506 @@
+{
+  "categories": [
+    {
+      "key": "setup",
+      "label": "Get set up",
+      "blurb": "Bring what you already have into Supernova, then let the agent build the structure."
+    },
+    {
+      "key": "audit",
+      "label": "Audit what you have",
+      "blurb": "See what is inconsistent, missing or drifting before you change anything."
+    },
+    {
+      "key": "maintain",
+      "label": "Maintain at scale",
+      "blurb": "One prompt, every page. The work that used to take a list and a week."
+    },
+    {
+      "key": "create",
+      "label": "Create and reuse",
+      "blurb": "Start from a page you already trust instead of a blank one."
+    },
+    {
+      "key": "improve",
+      "label": "Measure and improve",
+      "blurb": "Know what changed, who uses the system and what to fix next."
+    }
+  ],
+  "skills": [
+    {
+      "slug": "adoption-analysis",
+      "title": "Adoption analysis",
+      "description": "See which teams, repositories and agents use the design system, and where they work around it. Use when the user asks about design system adoption, coverage or usage across teams.",
+      "category": "improve",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "read",
+      "prompt": "Which teams use our design system least, and what do they use instead?",
+      "tools": [
+        "sn_get_token_usage",
+        "sn_get_component_list",
+        "sn_get_feedback"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Adoption analysis\n\nSee which teams, repositories and agents use the design system, and where they work around it.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=adoption-analysis) and stop.\n\n## Tools\n\n- `sn_get_token_usage`\n- `sn_get_component_list`\n- `sn_get_feedback`\n\n## Workflow\n\n1. Collect usage across code, people and agents.\n2. Group by team or repository.\n3. Explain low adoption with evidence and suggest fixes.\n"
+    },
+    {
+      "slug": "assign-figma-components",
+      "title": "Assign Figma components",
+      "description": "Link the right Figma component to every design system component and documentation page. Use when the user wants Figma components connected to components or docs pages across the system.",
+      "category": "maintain",
+      "personas": [
+        "Designer"
+      ],
+      "access": "write",
+      "prompt": "Link each component in our design system to its Figma component.",
+      "tools": [
+        "sn_get_component_list",
+        "sn_get_figma_component_list",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Assign Figma components\n\nLink the right Figma component to every design system component and documentation page.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=assign-figma-components) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_component_list`\n- `sn_get_figma_component_list`\n- `sn_admin_write`\n\n## Workflow\n\n1. Pair components with Figma components by name and structure.\n2. Show matches and unsure pairs.\n3. Write links after approval.\n"
+    },
+    {
+      "slug": "audit-design-system",
+      "title": "Audit your design system",
+      "description": "One report across tokens, components and documentation: what is inconsistent, missing or drifting, ranked by what to fix first. Use when the user asks for a design system audit, health check, review of the whole system, or wants to know what to fix first.",
+      "category": "audit",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "read",
+      "prompt": "Audit our design system and give me the ten things to fix first.",
+      "tools": [
+        "sn_get_token_list",
+        "sn_get_component_list",
+        "sn_get_documentation_page_list",
+        "sn_get_figma_component_list",
+        "sn_get_code_component_list",
+        "sn_get_token_usage"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Audit your design system\n\nOne report across tokens, components and documentation: what is inconsistent, missing or drifting, ranked by what to fix first.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=audit-design-system) and stop.\n\n## Tools\n\n- `sn_get_token_list`\n- `sn_get_component_list`\n- `sn_get_documentation_page_list`\n- `sn_get_figma_component_list`\n- `sn_get_code_component_list`\n- `sn_get_token_usage`\n\n## Workflow\n\n1. Collect tokens, components, documentation pages and Figma and code sources.\n2. Check naming, coverage, duplicates, missing docs and source parity.\n3. Score each area and rank findings by impact.\n4. Return a short report with the top fixes and which skill can do each one.\n"
+    },
+    {
+      "slug": "build-docs-structure",
+      "title": "Build your documentation structure",
+      "description": "Turn the components, tokens and assets you already have into a documentation page tree, instead of starting from an empty site. Use when the user has data in Supernova but no documentation structure, or asks to set up or reorganise their docs.",
+      "category": "setup",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Look at our components, tokens and assets and propose a documentation structure. Create it once I approve.",
+      "tools": [
+        "sn_get_component_list",
+        "sn_get_token_group_list",
+        "sn_get_asset_group_list",
+        "sn_get_documentation_page_list",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Build your documentation structure\n\nTurn the components, tokens and assets you already have into a documentation page tree, instead of starting from an empty site.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=build-docs-structure) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_component_list`\n- `sn_get_token_group_list`\n- `sn_get_asset_group_list`\n- `sn_get_documentation_page_list`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read components, token groups and assets.\n2. Propose a page tree (foundations, components, patterns, resources) and show it.\n3. After approval, create groups and empty pages with the right blocks.\n"
+    },
+    {
+      "slug": "bulk-deprecate-components",
+      "title": "Deprecate components in bulk",
+      "description": "Mark components as deprecated, add a notice to their pages and point to the replacement. Use when the user wants to deprecate one or more components, or retire part of the system.",
+      "category": "maintain",
+      "personas": [
+        "Design system manager",
+        "Engineer"
+      ],
+      "access": "write",
+      "prompt": "Mark all legacy button components as deprecated and point their pages to the new Button.",
+      "tools": [
+        "sn_get_component_list",
+        "sn_get_component_detail",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Deprecate components in bulk\n\nMark components as deprecated, add a notice to their pages and point to the replacement.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=bulk-deprecate-components) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_component_list`\n- `sn_get_component_detail`\n- `sn_admin_write`\n\n## Workflow\n\n1. Find the components in scope.\n2. Set their status and add a deprecation notice with the replacement.\n3. List where they are still used, if usage data is available.\n"
+    },
+    {
+      "slug": "bulk-edit-tokens",
+      "title": "Bulk edit tokens",
+      "description": "Change properties, types or collections for a whole token group in one go. Use when the user wants to change many tokens at once, move a group, or change token types.",
+      "category": "maintain",
+      "personas": [
+        "Engineer",
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Change every token in the border-radius group to the dimension type.",
+      "tools": [
+        "sn_get_token_group_list",
+        "sn_get_token_list",
+        "sn_get_token_property_list",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Bulk edit tokens\n\nChange properties, types or collections for a whole token group in one go.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=bulk-edit-tokens) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_token_group_list`\n- `sn_get_token_list`\n- `sn_get_token_property_list`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read the group and its tokens.\n2. Show the before and after for each token.\n3. Apply after approval.\n"
+    },
+    {
+      "slug": "clean-up-documentation",
+      "title": "Clean up your documentation",
+      "description": "Rename, remove dead content and fix formatting across every page in one pass. Use when the user wants to tidy documentation, rename a term everywhere, remove outdated content, or fix formatting across pages.",
+      "category": "maintain",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Rename \"Primary button\" to \"Button\" across all documentation and remove empty blocks.",
+      "tools": [
+        "sn_get_documentation_page_list",
+        "sn_get_documentation_page_content",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Clean up your documentation\n\nRename, remove dead content and fix formatting across every page in one pass.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=clean-up-documentation) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_documentation_page_list`\n- `sn_get_documentation_page_content`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read all pages in scope.\n2. List every change it will make, per page.\n3. Apply after approval and report what changed.\n"
+    },
+    {
+      "slug": "component-page-from-prompt",
+      "title": "Component page from a prompt",
+      "description": "Write a complete component page from a name, with usage, anatomy, props and do and don't, using Figma and code as sources. Use when the user asks to document a component from scratch.",
+      "category": "create",
+      "personas": [
+        "Designer"
+      ],
+      "access": "write",
+      "prompt": "Write the documentation page for our Tooltip component.",
+      "tools": [
+        "sn_get_component_detail",
+        "sn_get_figma_component_detail",
+        "sn_get_code_component_detail",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Component page from a prompt\n\nWrite a complete component page from a name, with usage, anatomy, props and do and don't, using Figma and code as sources.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=component-page-from-prompt) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_component_detail`\n- `sn_get_figma_component_detail`\n- `sn_get_code_component_detail`\n- `sn_admin_write`\n\n## Workflow\n\n1. Gather data about the component from every source.\n2. Draft sections: overview, usage, anatomy, props, accessibility, do and don't.\n3. Create the page as a draft for review.\n"
+    },
+    {
+      "slug": "cross-link-components",
+      "title": "Cross-link components",
+      "description": "Add related-component links and inline links between pages so readers and agents can move through the system. Use when the user wants related components linked, or says docs pages are isolated.",
+      "category": "maintain",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Add a \"Related components\" section to every component page and link component names where they are mentioned.",
+      "tools": [
+        "sn_get_component_list",
+        "sn_get_documentation_page_list",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Cross-link components\n\nAdd related-component links and inline links between pages so readers and agents can move through the system.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=cross-link-components) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_component_list`\n- `sn_get_documentation_page_list`\n- `sn_admin_write`\n\n## Workflow\n\n1. Find relationships from mentions, composition and categories.\n2. Propose links per page.\n3. Write them after approval.\n"
+    },
+    {
+      "slug": "design-system-health-report",
+      "title": "Weekly design system health report",
+      "description": "A weekly summary of what changed, what broke and what to fix next, ready to post to your team. Use when the user asks for a weekly report, status update, or summary of design system changes and health.",
+      "category": "improve",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "read",
+      "prompt": "Write this week's design system health report for the team channel.",
+      "tools": [
+        "sn_get_version_list",
+        "sn_get_documentation_page_list",
+        "sn_get_feedback",
+        "sn_get_token_usage"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Weekly design system health report\n\nA weekly summary of what changed, what broke and what to fix next, ready to post to your team.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=design-system-health-report) and stop.\n\n## Tools\n\n- `sn_get_version_list`\n- `sn_get_documentation_page_list`\n- `sn_get_feedback`\n- `sn_get_token_usage`\n\n## Workflow\n\n1. Collect changes since the last report.\n2. Collect open feedback and new gaps.\n3. Write a short report: changes, health, top three next actions.\n"
+    },
+    {
+      "slug": "document-design-tokens",
+      "title": "Document your design tokens",
+      "description": "Create token documentation pages with the right token blocks for colour, typography, spacing and more. Use when the user wants pages documenting tokens or foundations.",
+      "category": "create",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Create foundation pages for our colour, typography and spacing tokens.",
+      "tools": [
+        "sn_get_token_group_list",
+        "sn_admin_get_documentation_block_catalog",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Document your design tokens\n\nCreate token documentation pages with the right token blocks for colour, typography, spacing and more.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=document-design-tokens) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_token_group_list`\n- `sn_admin_get_documentation_block_catalog`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read token groups.\n2. Pick the right token block for each group.\n3. Create one page per foundation with a short intro and usage guidance.\n"
+    },
+    {
+      "slug": "figma-code-parity",
+      "title": "Check Figma and code parity",
+      "description": "Compare component props, variants and names between Figma and code, and flag where they drift. Use when the user asks if Figma and code components match, or wants a design-to-code parity report.",
+      "category": "audit",
+      "personas": [
+        "Engineer",
+        "Designer"
+      ],
+      "access": "read",
+      "prompt": "Compare our Figma components with the React components and show where props and variants differ.",
+      "tools": [
+        "sn_get_figma_component_list",
+        "sn_get_code_component_list",
+        "sn_get_code_component_detail",
+        "sn_get_storybook_story_list"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Check Figma and code parity\n\nCompare component props, variants and names between Figma and code, and flag where they drift.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=figma-code-parity) and stop.\n\n## Tools\n\n- `sn_get_figma_component_list`\n- `sn_get_code_component_list`\n- `sn_get_code_component_detail`\n- `sn_get_storybook_story_list`\n\n## Workflow\n\n1. Pair Figma and code components by name.\n2. Compare props, variants and defaults.\n3. Return mismatches and unpaired components.\n"
+    },
+    {
+      "slug": "figma-docs-parity",
+      "title": "Check Figma and documentation parity",
+      "description": "Find variants and properties that exist in Figma but are missing from the documentation, and the reverse. Use when the user asks whether docs match Figma, or after a Figma library update.",
+      "category": "audit",
+      "personas": [
+        "Designer"
+      ],
+      "access": "read",
+      "prompt": "Compare our Figma components with the documentation and list every variant or property that does not match.",
+      "tools": [
+        "sn_get_figma_component_list",
+        "sn_get_figma_component_detail",
+        "sn_get_documentation_page_content"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Check Figma and documentation parity\n\nFind variants and properties that exist in Figma but are missing from the documentation, and the reverse.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=figma-docs-parity) and stop.\n\n## Tools\n\n- `sn_get_figma_component_list`\n- `sn_get_figma_component_detail`\n- `sn_get_documentation_page_content`\n\n## Workflow\n\n1. Read Figma components and their properties.\n2. Read the matching documentation pages.\n3. List mismatches per component.\n"
+    },
+    {
+      "slug": "find-documentation-gaps",
+      "title": "Find documentation gaps",
+      "description": "List components with missing, thin or outdated documentation pages. Use when the user asks which components are undocumented, which pages are stale, or where the docs are incomplete.",
+      "category": "audit",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "read",
+      "prompt": "Which components have no documentation page, and which pages have not been updated since the component changed?",
+      "tools": [
+        "sn_get_component_list",
+        "sn_get_documentation_page_list",
+        "sn_get_documentation_page_content"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Find documentation gaps\n\nList components with missing, thin or outdated documentation pages.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=find-documentation-gaps) and stop.\n\n## Tools\n\n- `sn_get_component_list`\n- `sn_get_documentation_page_list`\n- `sn_get_documentation_page_content`\n\n## Workflow\n\n1. Match components to documentation pages.\n2. Flag missing pages, pages without usage or props, and pages older than the component.\n3. Return a table sorted by component usage.\n"
+    },
+    {
+      "slug": "import-from-figma",
+      "title": "Import from Figma",
+      "description": "Bring Figma components, variables and styles into Supernova and draft the first documentation for each component. Use when the user wants to start a design system in Supernova from an existing Figma library, or asks to import or document Figma components.",
+      "category": "setup",
+      "personas": [
+        "Designer",
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Import our design system from this Figma file and draft documentation for every component: [Figma link]",
+      "tools": [
+        "sn_get_design_source_list",
+        "sn_get_figma_component_list",
+        "sn_get_figma_component_detail",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Import from Figma\n\nBring Figma components, variables and styles into Supernova and draft the first documentation for each component.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=import-from-figma) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_design_source_list`\n- `sn_get_figma_component_list`\n- `sn_get_figma_component_detail`\n- `sn_admin_write`\n\n## Workflow\n\n1. Confirm the Figma file and the target design system.\n2. Create the design source and run the import.\n3. List imported components and tokens and report what came in.\n4. Draft one documentation page per component and leave them unpublished for review.\n"
+    },
+    {
+      "slug": "import-tokens-from-code",
+      "title": "Import tokens from code",
+      "description": "Read CSS variables, a Tailwind config or token JSON in your repository and create matching tokens in Supernova. Use when the user has tokens defined in code and wants them in Supernova, or asks to sync code tokens into the design system.",
+      "category": "setup",
+      "personas": [
+        "Engineer"
+      ],
+      "access": "write",
+      "prompt": "Read the tokens in src/styles/tokens.css and create them in Supernova, grouped the same way.",
+      "tools": [
+        "sn_get_token_list",
+        "sn_get_token_group_list",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Import tokens from code\n\nRead CSS variables, a Tailwind config or token JSON in your repository and create matching tokens in Supernova.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=import-tokens-from-code) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_token_list`\n- `sn_get_token_group_list`\n- `sn_admin_write`\n\n## Workflow\n\n1. Find token definitions in the repository.\n2. Compare with existing Supernova tokens and flag conflicts.\n3. Create new tokens and groups after approval.\n"
+    },
+    {
+      "slug": "match-code-to-tokens",
+      "title": "Match your code to your tokens",
+      "description": "Find every hardcoded colour, spacing and radius value in your repository and match it to the right design token. Use when the user asks to find hardcoded values, magic numbers, raw hex colours or px values, or to check code against design tokens.",
+      "category": "audit",
+      "personas": [
+        "Engineer"
+      ],
+      "access": "read",
+      "prompt": "Find every hardcoded hex and pixel value in this repo and match each one to a Supernova token, as a table.",
+      "tools": [
+        "sn_get_token_list",
+        "sn_get_token_detail"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Match your code to your tokens\n\nFind every hardcoded colour, spacing and radius value in your repository and match it to the right design token.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=match-code-to-tokens) and stop.\n\n## Tools\n\n- `sn_get_token_list`\n- `sn_get_token_detail`\n\n## Workflow\n\n1. Scan the repository for raw colour, spacing, radius and typography values.\n2. Match each value to the closest token and mark exact and near matches.\n3. Return a table: file, line, value, suggested token, confidence.\n4. Offer to replace exact matches in a branch.\n"
+    },
+    {
+      "slug": "migrate-from-wiki",
+      "title": "Migrate from Confluence, Notion or Markdown",
+      "description": "Turn design system pages from a wiki or a folder of Markdown into structured Supernova documentation. Use when the user wants to move design system docs from Confluence, Notion, Google Docs or Markdown files into Supernova.",
+      "category": "setup",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Move our design system docs from these Notion pages into Supernova and match them to our components: [links]",
+      "tools": [
+        "sn_get_component_list",
+        "sn_get_documentation_page_list",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Migrate from Confluence, Notion or Markdown\n\nTurn design system pages from a wiki or a folder of Markdown into structured Supernova documentation.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=migrate-from-wiki) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_component_list`\n- `sn_get_documentation_page_list`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read the source pages.\n2. Match each page to a component, token group or topic.\n3. Propose the structure, then create pages with the content split into blocks.\n"
+    },
+    {
+      "slug": "migrate-from-zeroheight",
+      "title": "Migrate from zeroheight",
+      "description": "Move pages, structure and content from a zeroheight styleguide into Supernova documentation. Use when the user is moving from zeroheight to Supernova, or mentions a zeroheight export or styleguide URL.",
+      "category": "setup",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Migrate our zeroheight styleguide into Supernova. Keep the page structure and map content to Supernova blocks: [zeroheight URL or export]",
+      "tools": [
+        "sn_get_documentation_page_list",
+        "sn_admin_get_documentation_block_catalog",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Migrate from zeroheight\n\nMove pages, structure and content from a zeroheight styleguide into Supernova documentation.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=migrate-from-zeroheight) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_documentation_page_list`\n- `sn_admin_get_documentation_block_catalog`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read the zeroheight export or pages the user provides.\n2. Map pages and content types to Supernova groups and blocks.\n3. Show the mapping and anything that will not carry over.\n4. Create the pages after approval and list what needs a manual pass.\n"
+    },
+    {
+      "slug": "new-page-from-existing",
+      "title": "New page from an existing one",
+      "description": "Build a new component page the way you built one you already trust, so the Checkbox page matches the Button page. Use when the user wants a new documentation page that follows an existing page.",
+      "category": "create",
+      "personas": [
+        "Designer",
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Create the Checkbox page the same way we built the Button page.",
+      "tools": [
+        "sn_get_documentation_page_content",
+        "sn_get_component_detail",
+        "sn_get_figma_component_detail",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# New page from an existing one\n\nBuild a new component page the way you built one you already trust, so the Checkbox page matches the Button page.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=new-page-from-existing) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_documentation_page_content`\n- `sn_get_component_detail`\n- `sn_get_figma_component_detail`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read the model page structure.\n2. Collect the new component data from Figma, code and Supernova.\n3. Create the page with the same sections, filled for the new component, as a draft.\n"
+    },
+    {
+      "slug": "release-notes",
+      "title": "Write release notes",
+      "description": "Turn the changes since the last version into a changelog and a short announcement. Use when the user asks for release notes, a changelog or an announcement for a design system release.",
+      "category": "improve",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "read",
+      "prompt": "Write release notes for everything that changed since version 3.2.",
+      "tools": [
+        "sn_get_version_list",
+        "sn_get_component_list",
+        "sn_get_token_list"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Write release notes\n\nTurn the changes since the last version into a changelog and a short announcement.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=release-notes) and stop.\n\n## Tools\n\n- `sn_get_version_list`\n- `sn_get_component_list`\n- `sn_get_token_list`\n\n## Workflow\n\n1. Compare the current state with the previous version.\n2. Group changes: new, changed, deprecated, fixed.\n3. Write the changelog and a short announcement.\n"
+    },
+    {
+      "slug": "standardise-component-pages",
+      "title": "Standardise component pages",
+      "description": "Bring component pages that grew on their own into one structure, using a page you pick as the model. Use when the user wants component pages to follow the same structure or template, or says pages are inconsistent.",
+      "category": "maintain",
+      "personas": [
+        "Designer",
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Make all component pages follow the same structure as the Button page.",
+      "tools": [
+        "sn_get_documentation_page_list",
+        "sn_get_documentation_page_content",
+        "sn_admin_get_documentation_block_catalog",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Standardise component pages\n\nBring component pages that grew on their own into one structure, using a page you pick as the model.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=standardise-component-pages) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_documentation_page_list`\n- `sn_get_documentation_page_content`\n- `sn_admin_get_documentation_block_catalog`\n- `sn_admin_write`\n\n## Workflow\n\n1. Read the model page and extract its section structure.\n2. Compare every component page with it.\n3. Show the planned changes per page, then restructure after approval, keeping existing content.\n"
+    },
+    {
+      "slug": "token-hygiene",
+      "title": "Token hygiene check",
+      "description": "Find unused, duplicate and badly named tokens, and broken aliases. Use when the user asks to clean up tokens, find unused or duplicate tokens, or check naming conventions.",
+      "category": "audit",
+      "personas": [
+        "Design system manager",
+        "Engineer"
+      ],
+      "access": "read",
+      "prompt": "Find tokens that are unused, duplicated or break our naming convention.",
+      "tools": [
+        "sn_get_token_list",
+        "sn_get_token_group_list",
+        "sn_get_token_usage",
+        "sn_get_token_theme_list"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Token hygiene check\n\nFind unused, duplicate and badly named tokens, and broken aliases.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=token-hygiene) and stop.\n\n## Tools\n\n- `sn_get_token_list`\n- `sn_get_token_group_list`\n- `sn_get_token_usage`\n- `sn_get_token_theme_list`\n\n## Workflow\n\n1. Read tokens, groups and themes.\n2. Detect duplicates by value, unused tokens by usage, naming outliers and broken references.\n3. Return grouped findings with suggested fixes.\n"
+    },
+    {
+      "slug": "update-block-everywhere",
+      "title": "Change a block everywhere",
+      "description": "Update one block or block property on every page where it appears, such as a shortcut block or a banner. Use when the user wants to change, add or remove the same block across many pages.",
+      "category": "maintain",
+      "personas": [
+        "Design system manager"
+      ],
+      "access": "write",
+      "prompt": "Change the shortcut block on every component page to link to Storybook instead of GitHub.",
+      "tools": [
+        "sn_get_documentation_page_list",
+        "sn_admin_get_documentation_block_schema",
+        "sn_admin_write"
+      ],
+      "version": "0.1.0",
+      "status": "draft",
+      "body": "# Change a block everywhere\n\nUpdate one block or block property on every page where it appears, such as a shortcut block or a banner.\n\n## Before you start\n\nThis skill works through the Supernova MCP server, which reads and writes your design system. Check that Supernova tools (`sn_*`) are available. If they are not, tell the user to connect Supernova first (https://www.supernova.io/mcp?utm_source=skill&utm_medium=agent&utm_campaign=update-block-everywhere) and stop.\n\nThis skill changes your design system. Show the user every change it plans to make and wait for a clear yes before calling a write tool. Leave new documentation pages unpublished.\n\n## Tools\n\n- `sn_get_documentation_page_list`\n- `sn_admin_get_documentation_block_schema`\n- `sn_admin_write`\n\n## Workflow\n\n1. Find pages that contain the block.\n2. Show the change for one page as a preview.\n3. Apply to all pages after approval.\n"
+    }
+  ]
+}
