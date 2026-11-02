@@ -1,6 +1,6 @@
 ---
 name: clean-up-tokens
-description: "Finds token problems in Supernova (bad descriptions and names, unused or deprecated tokens) and plans the cleanup. Checks missing or wrong descriptions, placeholder names, naming and spelling, duplicate values, unused tokens, deprecated leftovers and empty groups. Writes token descriptions and names, and deletes unused tokens and empty groups, in the design system's shared draft after the user approves. Use when the user asks to clean up, tidy, rename or describe tokens, remove unused or deprecated tokens, or fix token naming. Not for a whole-system health check (audit-design-system), not for creating tokens, changing token values or themes, and not for replacing hard-coded values in Figma or code (figma-variable-migration, token-migration)."
+description: "Finds token problems in Supernova (bad descriptions and names, unused or deprecated tokens) and plans the cleanup. Checks missing or wrong descriptions, placeholder names, naming and spelling, duplicate values, unused tokens, deprecated leftovers, empty groups, and orphaned tokens whose source is gone or no longer syncs. Writes token descriptions and names, and deletes unused tokens and empty groups, in the design system's shared draft after the user approves. Use when the user asks to clean up, tidy, rename or describe tokens, remove unused, deprecated or orphaned tokens, find tokens left behind by a removed or broken source, or fix token naming. Not for a whole-system health check (audit-design-system), not for creating tokens, changing token values or themes, and not for replacing hard-coded values in Figma or code (figma-variable-migration, token-migration)."
 license: MIT
 metadata:
   title: "Clean up tokens"
@@ -22,6 +22,7 @@ Finds what is wrong with your tokens and gives you one cleanup plan. After you s
 
 - The user asks to clean up, tidy or fix tokens, their names or their descriptions.
 - The user wants unused, duplicate or deprecated (`🚫`) tokens found or removed.
+- The user asks which tokens are orphaned, left over from a source that was removed, or no longer syncing from Figma.
 - An audit pointed at token naming, descriptions or unused tokens.
 
 ## Skip when
@@ -62,8 +63,8 @@ Read `references/tokens.md` (the read part and "Design Token Actions"; skip the 
 
 1. Call `sn_get_token_group_list` and build the group tree from `parentGroupId`.
 2. Call `sn_get_token_list` for the dataset, following `nextCursor` to the end. Pages run to about 60,000 characters: on a large system, read one type at a time with `tokenTypes`.
-3. Call `sn_get_token_detail` on up to 20 flagged tokens, at least one per top-level group, and read `origin`. If they share an origin, assume the group does and say so. `origin: null` is a native token you can edit here. Any other origin is imported: put its fixes on the Figma to-do list.
-4. Call `sn_get_design_source_list` once. Name the file and the source type (variables plugin, synced from Figma; or Figma styles, reimported in Supernova). Two sources can share a file name.
+3. Call `sn_get_design_source_list` once. Name each source by file and type (variables plugin, synced from Figma; or Figma styles, reimported in Supernova). Two sources can share a file name. Note each source's `id`, `scope.tokens`, `hasError`, `state` and `lastImportedAt`.
+4. Call `sn_get_token_detail` on one token per group, in batches of up to 20, and read `origin`. `origin.sourceId` is the source the token came from. `origin: null` is a native token you can edit here; any other origin is imported, so its fixes go on the Figma to-do list. If a group's sampled token is orphaned or comes from a stale source (step 3), or the group mixes native and imported tokens, read every token in that group. Otherwise assume the group shares its sample's origin and say so.
 5. Groups have no `origin`. A group whose tokens are all imported is imported: put its rename on the Figma to-do list.
 6. Call `sn_get_token_usage` in batches of up to 100. Below 300 tokens, read all of them. Above 300, read every token that is a delete candidate (unused, duplicate or deprecated) and 20 likely alias targets.
 
@@ -84,6 +85,9 @@ Component usage is tracked only if at least one token has `usage.components`. Ch
 | Unused | No `usage.tokens` and no `usage.components`. Documentation-page usage does not count. If no token has `usage.components`, propose no deletions as "unused". List unused primitives under "Not changed" as "possibly unused: component usage not tracked". | Delete, only when component usage is tracked |
 | Deprecated leftover | A token or group marked `🚫`, `deprecated`, `[WIP]` or `(deprecated)`. | Delete a 🚫/deprecated token if it has no `usage.tokens`; when component usage is not tracked, say so next to each one in the delete list. Otherwise list what still uses it |
 | Empty group | No tokens in it or its subgroups | `DELETE_TOKEN_GROUP` (`deleteContents: false`), in the same confirmed delete list |
+| Orphaned | `origin.sourceId` is not in `sn_get_design_source_list`: the source was removed, so nothing will ever update these tokens. | Report with the options: reconnect the source if the file still exists, keep them as native tokens, or delete those that are unused (same rules as Unused, in the confirmed delete list) |
+| Stale source | The token's source still exists but no longer syncs tokens: `hasError: true`, `scope.tokens: false`, a `state` other than active, or no import for 90 days or more. | Report only. Fix the sync, not the tokens: name the source and what is wrong with it. Never delete tokens because their source is stale |
+| Mixed origin | A native token (`origin: null`) inside a group whose other tokens are imported, such as a token added by hand next to synced ones. It exists only in Supernova, not in Figma. | Report; offer to move it into Figma (Figma to-do) or keep it, and ask |
 
 Deleting 🚫 tokens can leave empty 🚫 groups. Add those groups to the same delete list, marked "empty after the deletes above".
 
@@ -127,10 +131,13 @@ The report, before the yes. At most 8 findings; at most 3 examples each, by full
 | Rename | 6 | `Colors/grey` → `Colors/gray` |
 | Delete (unused) | 9 | `🚫 Old/Accent` (component usage not tracked), `Token #1` |
 | Delete empty groups | 2 | `🚫 Old` (empty after the deletes above) |
+| Orphaned (source removed) | 5 | `Legacy/Brand Blue`: source "Old Tokens" no longer connected. Reconnect, keep, or delete if unused |
 | Change in Figma, then sync or reimport | 12 | `Opacity/disabled` → `Opacity/Disabled` in "Dark Matter: Foundations" (variables plugin) |
 | Needs a human | 4 | `Brand/Special`: purpose unclear from name and usage |
 
-Not changed: <duplicates and deprecated tokens still in use, with what uses them; possibly unused primitives when component usage is not tracked>.
+Sources: <each token source: file, type, last import, and "OK", "error", "no longer imports tokens" or "removed (n orphaned tokens)">
+
+Not changed: <duplicates and deprecated tokens still in use, with what uses them; possibly unused primitives when component usage is not tracked; tokens from a stale source>.
 ```
 
 End the report with: "Reply yes to apply the descriptions and renames. I'll ask about the deletions separately."
@@ -152,6 +159,7 @@ End with: "Export or sync the design system to pick up the new names in code."
 - **A call returns an error**: follow the next step the error text gives. If it gives none, stop, report what was applied, and do not call that tool again.
 - **No tokens in the dataset**: say so in one line and stop.
 - **Every token is imported** (no `origin: null`): there is nothing to write here. Give the report and the whole plan as a Figma to-do list.
+- **Every token comes from a stale source**: say so first, before any other finding. Until the sync works, Figma fixes will not reach Supernova.
 - **The user confirms only part of the deletion list**: delete only those, and say which were kept.
 
 ## Gotchas
@@ -167,7 +175,8 @@ End with: "Export or sync the design system to pick up the new names in code."
 - Deleting 🚫 tokens can leave empty 🚫 groups. Put them in the same delete list.
 - Two design sources can share a file name. Name the source type too.
 - In testing, every token in a design system came from `FigmaVariablesPlugin` with `figmaFileUrl: null`. The whole plan became a Figma to-do list. Name the file by `sourceFile.fileName` when there is no URL.
-- A `FigmaVariablesPlugin` source can show `hasError: true`. Mention it next to the Figma to-do list so the user checks the sync.
+- A `FigmaVariablesPlugin` source can show `hasError: true` with its last import months old. In one test every token came from such a source (last import 11 months earlier), so no Figma change had reached Supernova since. Report it as a stale source, first.
+- `origin.sourceId` in `sn_get_token_detail` matches a source `id` from `sn_get_design_source_list`. That match is how you find orphaned tokens; the token list itself has no origin.
 - A Figma styles source can report `stats.tokens: 0` while tokens point to it. Trust the tokens' `origin`, not the count.
 - Exported CSS names can double up segments (`--ds-border-radius-border-radius-medium`). Mention it as a naming finding the user may want fixed; it changes no value.
 - `REIMPORT_FIGMA_DATA_SOURCE` rejects `FigmaVariablesPlugin` sources. Those tokens update when someone syncs from the Figma plugin.
