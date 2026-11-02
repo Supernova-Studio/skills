@@ -90,4 +90,4 @@ End with <one fixed closing line or one next-step offer>.
 
 ## Gotchas
 
-- <Lessons from testing that use-supernova does not cover. Add one every time a test or a user finds a mistake.>
+- <A fact about a tool that the agent would otherwise get wrong, then what to do. General, for any design system: no test anecdotes, internal names or exact sizes.>

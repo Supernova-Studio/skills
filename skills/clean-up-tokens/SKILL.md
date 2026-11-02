@@ -10,7 +10,7 @@ metadata:
   prompt: "Clean up our tokens: fill in missing descriptions, fix the naming, and remove what nobody uses."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_token_group_list, sn_get_token_list, sn_get_token_detail, sn_get_token_usage, sn_get_design_source_list, sn_admin_write"
   works-with: "Supernova"
-  version: "0.1.1"
+  version: "0.1.2"
   status: draft
 ---
 
@@ -62,7 +62,7 @@ Read `references/workspace-scope.md` and `references/datasets.md`.
 Read `references/tokens.md` (the read part and "Design Token Actions"; skip the value schemas).
 
 1. Call `sn_get_token_group_list` and build the group tree from `parentGroupId`.
-2. Call `sn_get_token_list` for the dataset, following `nextCursor` to the end. Pages run to about 60,000 characters: on a large system, read one type at a time with `tokenTypes`.
+2. Call `sn_get_token_list` for the dataset, following `nextCursor` to the end. Pages can be very large: on a large system, read one type at a time with `tokenTypes`.
 3. Call `sn_get_design_source_list` once. Name each source by file and type (variables plugin, synced from Figma; or Figma styles, reimported in Supernova). Two sources can share a file name. Note each source's `id`, `scope.tokens`, `hasError`, `state` and `lastImportedAt`.
 4. Call `sn_get_token_detail` on one token per group, in batches of up to 20, and read `origin`. `origin.sourceId` is the source the token came from. `origin: null` is a native token you can edit here; any other origin is imported, so its fixes go on the Figma to-do list. If a group's sampled token is orphaned or comes from a stale source (step 3), or the group mixes native and imported tokens, read every token in that group. Otherwise assume the group shares its sample's origin and say so.
 5. Groups have no `origin`. A group whose tokens are all imported is imported: put its rename on the Figma to-do list.
@@ -77,10 +77,10 @@ Component usage is tracked only if at least one token has `usage.components`. Ch
 | Check | What counts as an issue | Fix this skill can make |
 |---|---|---|
 | Missing description | A semantic token with no description. Primitives do not need one. | Write a short description |
-| Wrong description | A description that contradicts the value (`Grey Faded` described as grey but blue), a placeholder ("Test description", "..."), or several tokens each claiming to be "the main colour". | Rewrite or clear it |
-| Placeholder name | `Token #1`, `My new token`, `Untitled`, `copy`. | Rename |
+| Wrong description | A description that contradicts the value (`Gray Light` described as gray but blue), a placeholder ("Test description", "..."), or several tokens each claiming to be "the main colour". | Rewrite or clear it |
+| Placeholder name | `Token #1`, `New token`, `Untitled`, `copy`. | Rename |
 | Naming style | Siblings that mix case or separators (`gray` beside `Blue`, `On Background` beside `On background`). Follow the style most siblings already use. | Rename the minority |
-| Spelling | One idea named two ways (`gray` / `grey`, `bg` / `background`) or a misspelling (`Innactive`). | Rename to the majority form |
+| Spelling | One idea named two ways (`gray` / `grey`, `bg` / `background`) or a misspelling (`Dissabled`). | Rename to the majority form |
 | Duplicate value | Non-alias tokens of the same type with the same value. Several aliases of one token are fine. | Report only; delete if unused |
 | Unused | No `usage.tokens` and no `usage.components`. Documentation-page usage does not count. If no token has `usage.components`, propose no deletions as "unused". List unused primitives under "Not changed" as "possibly unused: component usage not tracked". | Delete, only when component usage is tracked |
 | Deprecated leftover | A token or group marked `🚫`, `deprecated`, `[WIP]` or `(deprecated)`. | Delete a 🚫/deprecated token if it has no `usage.tokens`; when component usage is not tracked, say so next to each one in the delete list. Otherwise list what still uses it |
@@ -132,7 +132,7 @@ The report, before the yes. At most 8 findings; at most 3 examples each, by full
 | Delete (unused) | 9 | `🚫 Old/Accent` (component usage not tracked), `Token #1` |
 | Delete empty groups | 2 | `🚫 Old` (empty after the deletes above) |
 | Orphaned (source removed) | 5 | `Legacy/Brand Blue`: source "Old Tokens" no longer connected. Reconnect, keep, or delete if unused |
-| Change in Figma, then sync or reimport | 12 | `Opacity/disabled` → `Opacity/Disabled` in "Dark Matter: Foundations" (variables plugin) |
+| Change in Figma, then sync or reimport | 12 | `Opacity/disabled` → `Opacity/Disabled` in "Brand tokens" (variables plugin) |
 | Needs a human | 4 | `Brand/Special`: purpose unclear from name and usage |
 
 Sources: <each token source: file, type, last import, and "OK", "error", "no longer imports tokens" or "removed (n orphaned tokens)">
@@ -164,20 +164,10 @@ End with: "Export or sync the design system to pick up the new names in code."
 
 ## Gotchas
 
-- A token group's `path` is not consistent across levels. Build the tree from `parentGroupId`.
-- Token values show references only as `(name)` text, and composite tokens can hide them. Use `usage.tokens` from `sn_get_token_usage` as the alias check.
-- Token usage counts documentation pages. A foundations page that shows every colour makes every colour look used. Count only token and component usage; list any page that shows a token you delete, because it will drop out of that page's token block.
-- Token usage lists only pages that select the token itself. Pages that show a whole group (e.g. a Typography page with a group block) are not in usage; check pages that document the token's group before deleting.
-- Component usage of tokens is often not tracked. Without it, every token looks unused. In one run this proposed deleting the whole spacing scale. Propose no "unused" deletions when no token has `usage.components`.
-- A numeric scale such as `Spacing/0…40` holds primitives, even without a Palette or Core name.
-- `sn_get_token_detail` is long per token. Sample up to 20 flagged tokens, one per top-level group at least, instead of reading every one.
-- Token groups have no `origin`. Judge a group by its tokens.
-- Deleting 🚫 tokens can leave empty 🚫 groups. Put them in the same delete list.
-- Two design sources can share a file name. Name the source type too.
-- In testing, every token in a design system came from `FigmaVariablesPlugin` with `figmaFileUrl: null`. The whole plan became a Figma to-do list. Name the file by `sourceFile.fileName` when there is no URL.
-- A `FigmaVariablesPlugin` source can show `hasError: true` with its last import months old. In one test every token came from such a source (last import 11 months earlier), so no Figma change had reached Supernova since. Report it as a stale source, first.
-- `origin.sourceId` in `sn_get_token_detail` matches a source `id` from `sn_get_design_source_list`. That match is how you find orphaned tokens; the token list itself has no origin.
-- A Figma styles source can report `stats.tokens: 0` while tokens point to it. Trust the tokens' `origin`, not the count.
-- Exported CSS names can double up segments (`--ds-border-radius-border-radius-medium`). Mention it as a naming finding the user may want fixed; it changes no value.
-- `REIMPORT_FIGMA_DATA_SOURCE` rejects `FigmaVariablesPlugin` sources. Those tokens update when someone syncs from the Figma plugin.
-- The item shape for `BULK_UPDATE_TOKENS` is not in `use-supernova`. Use the `UPDATE_TOKEN` fields per item; if the call errors, follow its text.
+- Token values show an alias only as `(name)` text, and composite tokens can hide it entirely. Use `usage.tokens` from `sn_get_token_usage` to find aliases.
+- Token usage lists a documentation page only when the page selects that token. Pages that show a whole group (a Typography page with a group block) are not listed. Before deleting a token, check the pages that document its group too, and name every page that will lose it.
+- A `FigmaVariablesPlugin` source can have `figmaFileUrl: null`. Name its file by `sourceFile.fileName`.
+- A Figma styles source can report `stats.tokens: 0` while tokens still point to it. Trust the tokens' `origin`, not the count.
+- Exported code names can repeat a segment (`--ds-border-radius-border-radius-medium`). Report it as a naming finding the user may want fixed; it changes no value.
+- `REIMPORT_FIGMA_DATA_SOURCE` rejects `FigmaVariablesPlugin` sources. Those tokens update only when someone syncs from the Figma plugin.
+- The item shape for `BULK_UPDATE_TOKENS` is not in `use-supernova`. Use the `UPDATE_TOKEN` fields for each item; if the call errors, follow its text.

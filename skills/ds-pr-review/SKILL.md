@@ -10,7 +10,7 @@ metadata:
   prompt: "Review PR #482 for design system drift before I merge it."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_get_code_component_list, sn_get_code_component_detail, sn_get_component_list, sn_search, sn_get_documentation_page_content, sn_get_token_group_list, sn_get_token_list, sn_get_token_property_list, sn_get_token_detail, sn_collect_agent_feedback"
   works-with: "Supernova, GitHub"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -82,7 +82,7 @@ A comment must name the token the way the author writes it in code, not the Supe
 
 1. Find how this repo consumes tokens: CSS variables (`var(--…)`), a theme object (`theme.colors.…`), a Tailwind config or `@theme` block, or a generated tokens file. The generated files are the list of names that exist in code.
 2. Call `sn_get_token_property_list` with `includeValues: false`. If a property holds the code name (named like CSS, Typescript or Tailwind class, or described as "variable name to use in code"), `sn_get_token_detail` returns each token's code name in `properties`. If code-name properties disagree, prefer the one the CSS export pipeline writes to (`propertyToWriteNameTo`), else the one that matches the repo, and report the conflict as a system gap.
-3. Otherwise derive the name from the generated file's pattern. Exporters often add a prefix and the token type: in one system the path `Border Radius/Small` became `--ds-border-radius-border-radius-small`.
+3. Otherwise derive the name from the generated file's pattern. Exporters often add a prefix and the token type, so a path such as `Border Radius/Small` can become `--ds-border-radius-border-radius-small`.
 4. Before you suggest a token, confirm that name exists in the repo. If it exists in Supernova but not in code (not exported, or a "Figma only" flag), it is a system gap, not an author error.
 5. If the repo defines tokens Supernova doesn't hold (Tailwind `@theme`, CSS variables, theme constants), name the repo token as the fix and list "repo tokens missing from Supernova" under System gaps.
 
@@ -175,13 +175,8 @@ End with one question: "Want me to post this review to the pull request?"
 ## Gotchas
 
 - `sn_search` covers documentation and knowledge only. It never returns tokens, components or code components; use their list tools.
-- `sn_get_code_component_list` is expensive even with a query: fuzzy search pulls in related components with long prop types (one Tooltip query returned three components and thousands of characters of inherited DOM types). Query a few names, read the first page, and use `sn_get_code_component_detail` for the clean prop table.
-- Code components often carry a package prefix (`DMTooltip`, `DMButtonPrimary`). Search by the plain name; match ignoring the prefix.
-- One library component can be split into several exports by variant (`DMButtonPrimary`, `DMButtonNeutral`). "Use the Button" is not a fix; name the export.
-- Usage pages can be unfilled templates ("🚧 To do", empty Do/Don't tables). That is not guidance; don't cite it, and a missing guideline the author needed is a system gap.
-- Token paths in Supernova are not code names. The code name lives in a token property when the export pipeline writes it there, or follows the exporter's pattern; always confirm it in the repo.
-- `sn_collect_agent_feedback` exists only on some connections (it records against the active Context). When it is missing, the System gaps section is the record.
-- `gh pr diff` has no path filter. One 259K-character diff had to be filtered to UI files locally.
-- With `button` in a five-name `sn_get_code_component_list` query, nine Button exports filled page 1 (about 35K characters) and Tabs never appeared. Rare names go in their own call.
-- Code-name token properties can disagree. In Dark Matter, "Syntax: Web" gives `--rs-color-…`, "CSS" gives `var(--ds-color-…)`, and "Typescript" and "Tailwind class" are empty.
-- A repo can have its own token layer (Tailwind `@theme`, CSS variables, theme constants) and no dependency on the Supernova code package. Check `package.json` before naming a package.
+- `sn_get_code_component_list` is expensive even with a query: its fuzzy search pulls in related components with long inherited prop types. A common name such as `button` can fill the first page, so other names in the same query never show up. Use `sn_get_code_component_detail` for the clean prop table.
+- Code components often carry a package prefix (`AcmeTooltip`). Search by the plain name, and match ignoring the prefix.
+- A library can split one component into an export per variant (`AcmeButtonPrimary`, `AcmeButtonNeutral`). "Use the Button" is not a fix; name the export.
+- Usage pages can be unfilled templates ("🚧 To do", empty Do/Don't tables). That is not guidance: don't cite it. A missing guideline the author needed is a system gap.
+- `gh pr diff` has no path filter, and a large pull request's diff can be huge. Save it to a file and filter it to UI files locally.

@@ -10,7 +10,7 @@ metadata:
   prompt: "Replace the hardcoded colors in src/checkout with our design tokens."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_get_token_group_list, sn_get_token_list, sn_get_token_detail, sn_get_token_theme_list, sn_get_token_property_list, sn_admin_get_export_pipelines, sn_search, sn_collect_agent_feedback"
   works-with: "Supernova, GitHub"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -199,11 +199,7 @@ End with one question: "Migrate onto the repo's own tokens (not grounded in Supe
 
 ## Gotchas
 
-- A `sn_get_token_list` page can run to about 60,000 characters. Always filter with `tokenTypes`.
 - `sn_get_token_list` shows a reference as `(name)` after the value, for example `#A0AEC0 (gray/500)`. Compare on the value only; `sn_get_token_detail` resolves aliases to the literal value.
-- Several tokens usually share one value (a primitive and its semantic aliases). An exact value match is never enough on its own.
-- Exporters often add a prefix and the token type to the code name: in one system `Border Radius/Small` became `--ds-border-radius-border-radius-small`. Copy names from the repo, not from the Supernova path.
-- `sn_admin_get_export_pipelines` is only on Contributor+ connections. Its response is about 40K characters and contains signed download links with session tokens. Read the naming settings only; never open, repeat or paste those links.
-- Code-name token properties can disagree. In Dark Matter, "Syntax: Web" gives `--rs-color-…`, "CSS" gives `var(--ds-color-…)`, and "Typescript" and "Tailwind class" are empty.
-- A repo can have its own token layer (Tailwind `@theme`, CSS variables, theme constants) and no Supernova export at all. The grep in step 2 finds this before the expensive reads.
+- Exporters often add a prefix and the token type to the code name, so `Border Radius/Small` can become `--ds-border-radius-border-radius-small`. Copy names from the repo, not from the Supernova path.
+- `sn_admin_get_export_pipelines` is only on Contributor or higher connections. Its response is large and contains signed download links with session tokens. Read the naming settings only; never open, repeat or paste those links.
 - Normalize before comparing: lowercase hex, expand `#abc`, read alpha from 8-digit hex and `rgba()`. For `rem`, use the repo's root font size, and log a rounding difference as a near match.
