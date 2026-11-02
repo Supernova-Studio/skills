@@ -56,12 +56,15 @@ Read `references/workspace-scope.md` and `references/datasets.md`. Components an
 
 ### 2. Find the components to document
 
-Read `references/figma-components.md` and `references/components.md`. Call `sn_get_figma_component_list` and `sn_get_component_list`, following `nextCursor` to the end. Call `sn_get_component_detail` (up to 10 IDs per call) to read each canonical component's Figma component link and documentation link values. Call `sn_get_documentation_page_list` and follow `nextCursor` to the end.
+Read `references/figma-components.md` and `references/components.md`. Call `sn_get_figma_component_list` and `sn_get_component_list`, following `nextCursor` to the end. Call `sn_get_documentation_page_list` and follow `nextCursor` to the end. Match by name first. Then call `sn_get_component_detail` (up to 10 IDs per call) only for candidates, to read their Figma component link and documentation link values. Reading every component costs about one call per 10 components (about 50,000 characters for 63).
 
-- **Named components**: find each by name in both lists. Ask when a name matches several.
+- **Named components**: find each by name in both lists.
 - **"The new ones" or "after the import"**: call `sn_get_design_source_list`. Each Figma source shows `lastImportedAt` and how many components its last import created. Figma components carry no dates, so list the candidates: Figma components that no canonical component links to and that have no likely name match. Canonical components without a page are candidates too; sort those by `createdAt`, newest first. Tell the user the import count next to the candidates and let them pick.
+- **Everything without a page**: list canonical components with no documentation link and no likely page, then Figma components with no canonical component; let the user pick up to 10.
 
-Leave out, and list as left out: assets (`isAsset` in the Figma detail, or 0 variants and 0 properties, or icon, file-type and illustration names), names marked `🚫`, `[WIP]` or `(deprecated)`, and parts of another component (`Menu.Empty State`, `Cell Text`, `Icon Slot Wrapper`). Several Figma components named for a variant of one thing (`Button Primary`, `Button Critical`) are one component: ask before creating anything.
+When a Figma name appears more than once (`Radio` ×2, `Select` ×2), ask which one, for any selection mode. Before listing a Figma component as new, check whether a same-named canonical links to a missing or 🚫 ID; report it as "relink", not "new". Resolve status option names before judging a component's status (see Gotchas).
+
+Leave out, and list as left out: assets (`isAsset: true` in the Figma detail, or 0 variants and 0 properties with no canonical component or page of that name), names marked `🚫`, `[WIP]` or `(deprecated)`, and parts of another component (`Menu.Empty State`, `Cell Text`, `Icon Slot Wrapper`). List names with one 2-value Variant property and noun names (`Copy`, `Archive`, `PDF`) as "probably icons". Several Figma components named for a variant of one thing (`Button Primary`, `Button Critical`) are one component: ask before creating anything.
 
 ### 3. Read each component's Figma data
 
@@ -72,13 +75,15 @@ Call `sn_get_figma_component_detail` (up to 10 IDs per call). Keep its `descript
 Read `references/documentation-structure.md` and `references/documentation-content.md`.
 
 - **With a reference page** the user trusts: read it with `sn_get_documentation_page_content` (all tabs if it is a tab group). Keep its tabs, headings and block types in the same order. Replace each block's selection with the new component's IDs. Replace its prose with facts from Figma, or with a "Needs a human" note.
-- **Without one**: follow the sibling component pages in the section that documents components: same parent group, tabbed or flat, same tab titles. If there are none, use one flat page with the outline below.
+- **Without one**: follow the sibling component pages in the section that documents components: same parent group, tabbed or flat, same tab titles. If siblings mix tabbed and flat pages, copy the most recently created sibling component page and name it in the plan. If there are none, use one flat page with the outline below.
+
+Title the page in its siblings' style (sentence case, no path prefix); leave the canonical name unchanged.
 
 Default outline (leave out a section that would be empty):
 
 1. Intro: one or two sentences from the Figma description. If it is empty, a "Needs a human" note.
 2. A Figma component block with the default preview.
-3. `## Variants`: one `###` per Variant property, under its exact name, each with a Figma component block showing all values of that property.
+3. `## Variants`: one `###` per Variant property with two or more values, under its exact name, each with a Figma component block showing all values of that property.
 4. `## Properties`: a Figma component properties table.
 5. `## Usage`: one "Needs a human" note listing when to use it, when not to, behaviour, accessibility and content.
 
@@ -123,7 +128,7 @@ The plan and the final reply use the same shape. No raw JSON or MDX. At most 10 
 - <Component>: <what is missing, one line>
 
 ### Left out
-- <Name>: asset | deprecated | part of <component> | split by variant, waiting for your answer
+- <Name>: asset | probably an icon | deprecated | part of <component> | split by variant, waiting for your answer | relink: canonical <name> points at a missing or 🚫 Figma component
 
 Links: <page links from sn_admin_get_entity_url>
 ```
@@ -134,13 +139,19 @@ End with: "Nothing is published. Fill the 'Needs a human' notes, then publish in
 
 - **`sn_admin_write` is missing**: show the plan only, say the connection is read-only, and stop.
 - **A call returns an error**: follow the next step the error text gives. If it gives none, stop, report what was and was not applied, and do not call that tool again.
-- **Nothing to document**: say every non-asset Figma component already has a component and a page, and stop.
+- **Nothing to document**: say every non-asset Figma component already has a component and a page, and stop. List any "relink" items found.
 - **No Figma components imported**: say so, point to `references/design-data-sources.md` for linking a Figma file, and stop.
 
 ## Gotchas
 
 - Figma components carry no dates, so "the newest" cannot be read directly. The design source's last import only gives a count. Show candidates and let the user pick.
-- The imported list mixes components with icons, file-type glyphs and illustrations (about half of one test system). Read `isAsset` and the counts before treating one as a component.
+- The imported list mixes components with icons, file-type glyphs and illustrations (about half of one test system). The list has no `isAsset`; only the detail does, and icons with a Size variant (`Copy`, `PDF`) still show `isAsset: false`. Use the counts and the names too.
+- Figma names can repeat (`Radio` ×2, `Select` ×2, `Menu.Group Indentation` ×2). Ask which one; never pick by list order.
+- A canonical component can link to a Figma component that is gone or marked 🚫. A same-named Figma component then looks new; it needs a relink, not a new page.
+- Reading every component's links costs about one `sn_get_component_detail` call per 10 components (about 50,000 characters for 63). Match by name first.
+- `sn_get_component_property_list` with values returns token property values paged together with component values. Use `includeValues: false` only, and read link values with `sn_get_component_detail`.
+- A status option ID can mislead: `status-deprecated` was displayed as "Stable". Resolve option names before judging status.
+- Sibling pages can mix tabbed and flat layouts. Copy the most recently created one and say which.
 - Variant property IDs can equal the property name (`Text alignment`), while others look like `6064:0`. Copy IDs from the detail response; never type them.
 - Figma descriptions are often empty. Then the intro is a "Needs a human" note, not an invented sentence.
 - `LINK_FIGMA_COMPONENT` takes the root component ID from the list, not a variant ID.
