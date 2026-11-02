@@ -8,9 +8,9 @@ metadata:
   personas: "Design system manager"
   access: read
   prompt: "Audit our design system and give me the ten things to fix first."
-  tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_design_system_list, sn_get_token_group_list, sn_get_token_list, sn_get_token_usage, sn_get_component_list, sn_get_figma_component_list, sn_get_code_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_feedback"
+  tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_design_system_list, sn_get_token_group_list, sn_get_token_list, sn_get_token_detail, sn_get_design_source_list, sn_get_token_usage, sn_get_component_list, sn_get_figma_component_list, sn_get_code_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_feedback"
   works-with: "Supernova"
-  version: "0.3.0"
+  version: "0.3.1"
   status: draft
 ---
 
@@ -75,6 +75,7 @@ Call `sn_get_token_group_list` and `sn_get_token_list` for the dataset. Build th
 | Deprecated still present | Groups or tokens marked `🚫`, `deprecated` or `[WIP]`. |
 | Unused tokens | Use the usage you already read; otherwise call `sn_get_token_usage` in batches of up to 100. Documentation-page usage never counts, because a foundations page that shows every token would make them all look used. If any token has `usage.components`, component usage is tracked: flag tokens with no token and no component usage. If none has, component usage is not tracked: flag only primitives that no token references, skip the check for semantic tokens, and say so. |
 | Descriptions | Count semantic tokens with a description. This is coverage, not part of the score (see step 7). |
+| Token sources | Call `sn_get_design_source_list` once, then `sn_get_token_detail` on one token per top-level group. Flag a source that no longer syncs tokens (`hasError: true`, `scope.tokens: false`, or no import for 90 days or more), and tokens whose `origin.sourceId` matches no source (orphaned: their source was removed). A structural finding, not part of the score. |
 
 ### 3. Components
 
@@ -143,7 +144,7 @@ Labels:
 
 Rank findings by impact:
 
-1. Confusing for everyone downstream: parallel token structures, no alias layer and duplicate values, components split by variant, near duplicates, wrong guidance.
+1. Confusing for everyone downstream: a token source that no longer syncs, orphaned tokens, parallel token structures, no alias layer and duplicate values, components split by variant, near duplicates, wrong guidance.
 2. Blocking agents and new people: components with no documentation, placeholders published, pages that unresolved `Incorrect` feedback points to, likely stale pages.
 3. Costing time: unused tokens, thin pages, pages stuck in review or unpublished, deprecated items still present.
 4. Cosmetic: naming style, missing descriptions.
@@ -155,7 +156,7 @@ Rank findings by impact:
 | Components without documentation | `document-new-components` |
 | Thin, wrong-guidance, stale, placeholder, unpublished and undescribed pages | `fix-documentation` |
 | Unresolved feedback, including `Incorrect` feedback on a page | `fix-from-feedback` |
-| Naming, spelling, descriptions, duplicate, unused and deprecated tokens | `clean-up-tokens` |
+| Naming, spelling, descriptions, duplicate, unused, deprecated and orphaned tokens, stale token sources | `clean-up-tokens` |
 | Figma, code and documentation drift | `sync-docs-with-design-and-code` |
 
 If no skill fits (for example, components split by variant or near duplicates, which need a design decision), end the item with "→ fix in Supernova".

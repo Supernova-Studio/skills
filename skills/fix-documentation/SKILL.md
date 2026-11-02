@@ -10,7 +10,7 @@ metadata:
   prompt: "Fix the documentation issues from the audit: descriptions, empty template pages and the test pages."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_component_list, sn_get_component_detail, sn_get_figma_component_list, sn_get_figma_component_detail, sn_admin_get_documentation_block_catalog, sn_admin_get_documentation_block_schema, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -46,7 +46,7 @@ Finds or takes the documentation gaps, shows a fix for each page, and after a ye
 - Deleting pages or groups needs the user to confirm those exact items, separately from the rest of the plan.
 - Matching a page to a component by name is a guess. Prefer the component's link properties (step 3); call name matches "likely" and show the names.
 - Group repeats: 12 pages with the description "..." is one line in the plan with a count, then the pages.
-- At most 20 pages per run. Offer the rest as the next run.
+- At most 20 pages per run, in the order step 2 gives. Offer the rest as the next run.
 
 ## Workflow
 
@@ -65,15 +65,18 @@ Read `references/documentation-structure.md`. Call `sn_get_documentation_page_li
 |---|---|---|
 | Missing description | Empty, or a placeholder (`...`, `TBD`, "Test description") | Write one sentence from the page's intro, the canonical component's description or the Figma component's description |
 | Copied description | Several units about different subjects share one description | Same as above, one per unit |
-| Unfilled template | Blocks with nothing selected: `value={[]}`, a self-closing `<SNFigmaComponents ... />`, `<SNImage />` | Select the page's own component in the block, or remove the empty block |
-| Thin page | Under about 80 words of content, or only a heading and an embed | Fill unfilled blocks; add a "Needs a human" note for missing guidance |
-| Placeholder published | Pages named `template`, `Test`, `Untitled page`, or marked `❌`, that are published | Ask: rename, move, or delete. See Gotchas: MCP cannot unpublish |
+| Unfilled template | Blocks with nothing selected: an `<SNPropComponent>`/`<SNPropFigmaComponent>` with `value={[]}`, a self-closing `<SNFigmaComponents />`, `<SNImage />` without `src`, or `<SNShortcut />` without `title`. Empty arrays in other attributes (`componentProperties={[]}`, `excludePropertyIds={[]}`) are normal. | Select the page's own component in the block, or remove the empty block |
+| Thin page | Under about 80 words of content, or only a heading and an embed | Fill unfilled blocks; add a "Needs a human" note for missing guidance. If the page has no preview and the component has a Figma link, add a Figma component block for it. |
+| Placeholder published | Pages named `template`, `Test`, `Untitled page`, or marked `❌`, that are published | Ask: rename, move, or delete. See Gotchas: MCP cannot unpublish. On pages named template, only ask what to do with the page; don't fix their blocks. |
 | Wrong guidance | A block that points at another component, or text about another component or library | Point the block at this page's component; replace copied text with a "Needs a human" note |
+| Broken link | A link or block points at an ID a read tool reports missing (e.g. `missingIds` from a Figma detail call), or a shortcut has no href | Needs a human; offer a likely target by name |
 | Duplicate groups | Sibling groups with the same name | Move the pages into one group, then delete the empty one |
+
+If there are more than 20 pages to fix, take component pages with empty/placeholder descriptions first, then wrong guidance, then thin pages, then other sections.
 
 ### 3. Find each page's component
 
-Read `references/components.md` and `references/figma-components.md`. Call `sn_get_component_list`, then `sn_get_component_detail` (up to 10 IDs per call) for the components you need. Many design systems keep a Link property to the documentation page and one to the Figma component: use their values first. Then call `sn_get_figma_component_detail` for the linked Figma component to get its ID, description and property definitions. Without links, match by name using the audit's rules and call the match "likely".
+Read `references/components.md` and `references/figma-components.md`. Call `sn_get_component_list`, then `sn_get_component_detail` (up to 10 IDs per call) for the components you need. Many design systems keep a Link property to the documentation page and one to the Figma component: use their values first. Then call `sn_get_figma_component_detail` for the linked Figma component to get its ID, description and property definitions. If several components link to the page, list them; use the one the page's blocks already select. Without links, match by name using the audit's rules and call the match "likely".
 
 ### 4. Draft the fixes
 
@@ -109,10 +112,10 @@ The plan and the final reply use the same shape. No raw JSON or MDX. At most 20 
 
 <One sentence: how many pages changed, and that nothing was published.>
 
-| Page | Gap | Fix | State |
-|---|---|---|---|
-| Components / UI components / Banner | Description "..." on 3 tabs | "Message about the whole page or app." | Ready for review |
-| Components / UI components / template v2 / Figma | 4 unfilled blocks | Removed; page left as a template | Ready for review |
+| Page | Gap | Before | After | State |
+|---|---|---|---|---|
+| Components / UI components / Banner | Description on 3 tabs | "..." | "Message about the whole page or app." | Ready for review |
+| Components / UI components / Tooltip | Thin page, no preview | Heading and 30 words | + Figma component block, + "Needs a human" note | Ready for review |
 
 ### Needs a human
 - <Page>: <what is missing, one line each>
@@ -138,7 +141,11 @@ End with: "Nothing is published. Review the pages in Supernova and publish when 
 ## Gotchas
 
 - MCP has no action to unpublish a page. Deleting a published page in the draft takes it off the live site only at the next publish, which is the user's step. Say this when asking about placeholder pages.
-- Pages named `template` are often kept on purpose as the team's page template. Ask before deleting or renaming them.
+- Pages named `template` are often kept on purpose as the team's page template. Ask before deleting or renaming them, and leave their empty blocks alone.
+- Empty arrays are normal in many block attributes (`componentProperties={[]}`, `excludePropertyIds={[]}`). Only an empty `value` on a component prop block means nothing is selected.
+- `<SNImage />` without `src` and `<SNShortcut />` without `title` are unfilled blocks too.
+- A Figma detail call reports dead links in `missingIds`. A page can point at a Figma component that no longer exists.
+- Several canonical components can link to the same page. Use the one the page's blocks already select.
 - Tab pages share their tab group's description. Updating it on one tab changes all tabs; count it once.
 - Unfilled template blocks look like content in `mdx-lite`. Check that each block has something selected.
 - A component's documentation link can point at a tab group ID, not a page ID. Read the group's tabs.
