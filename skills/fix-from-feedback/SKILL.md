@@ -158,7 +158,7 @@ End with: "Nothing is published. Review the pages in Supernova and publish when 
 - **`sn_admin_write` is missing**: give the report, say the connection cannot write, and stop.
 - **`sn_get_context_list` or `sn_get_feedback` is missing**: say this connection cannot read feedback and stop.
 - **A call returns an error**: follow the next step the error text gives. If it gives none, stop, report what was applied, and do not call that tool again.
-- **No unresolved feedback**: say so in one line. If several Contexts have `isFeedbackCollectionEnabled: false`, name them: they cannot collect any. Stop.
+- **No unresolved feedback**: call `sn_get_feedback` once with `designSystemId` and `state: Resolved`, and say so in one line with its count ("No unresolved feedback; N items were resolved earlier."). Name every Context with `isFeedbackCollectionEnabled: false`: they cannot collect any. Stop.
 - **A theme has no clear fix**: list it under "Left unresolved" with what is missing. Do not resolve it.
 
 ## Gotchas
@@ -167,4 +167,6 @@ End with: "Nothing is published. Review the pages in Supernova and publish when 
 - `sn_get_feedback` with `workspaceId` returns feedback from every design system in the workspace (in testing, from a Context of another system). Use `designSystemId`, plus `contextId` for workspace-level Contexts.
 - A Context that was archived can still have unresolved feedback. Read the Context list with `includeArchived: true` so every item maps to a name.
 - `sn_get_documentation_page_content` in `markdown` format drops blocks. Use the default `mdx-lite`.
+- A design system with no unresolved feedback can still have resolved items. Report their count so "nothing to do" does not read as "nothing collected".
+- Feedback collection is off for some Contexts (`isFeedbackCollectionEnabled: false`). Name each one, even when only one is off.
 - An `Incorrect` item is sometimes the agent's mistake, not the page's. Check the page before you change it.

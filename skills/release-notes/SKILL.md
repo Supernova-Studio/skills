@@ -8,7 +8,7 @@ metadata:
   personas: "Design system manager"
   access: write
   prompt: "What changed in our design system since October 1? Write it up as release notes for designers and engineers."
-  tools: "sn_read_skill_resource, sn_admin_get_current_context, sn_get_version_list, sn_get_brand_list, sn_get_activity_event_list, sn_get_token_group_list, sn_get_token_list, sn_get_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_admin_get_documentation_publish_history, sn_admin_get_entity_url, sn_admin_write"
+  tools: "sn_read_skill_resource, sn_admin_get_current_context, sn_get_version_list, sn_get_brand_list, sn_get_design_source_list, sn_get_activity_event_list, sn_get_token_group_list, sn_get_token_list, sn_get_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_admin_get_documentation_publish_history, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova, Slack"
   version: "0.1.0"
   status: draft
@@ -58,7 +58,7 @@ Read `references/workspace-scope.md` and `references/datasets.md`.
 2. Call `sn_get_version_list`. Each version has `name`, `version`, `createdAt`, `changeLog` and `isSharedDraft`.
 3. Resolve the baseline:
    - **A version** ("since 3.2"): that version. Its `createdAt` is the start date.
-   - **A date**: the start date. The baseline is the latest released version created on or before it, if there is one.
+   - **A date**: the start date. The baseline is the latest released version created on or before it, if there is one. "This month" starts on the 1st of the current month; "last month" is the previous calendar month. Put the dates in the scope line.
    - **Nothing given**: the latest released version. If there is none, ask for a date.
 4. The target is the shared draft unless the user names a later version. Say the notes include unreleased work in the shared draft.
 5. Call `sn_get_brand_list`. With several datasets, cover all and label each token and component line with its dataset, unless the user picks one. Documentation is shared by all datasets.
@@ -83,11 +83,11 @@ Use the first method that applies.
 3. Compare names, values, descriptions and parent groups for tokens; names and descriptions for components; titles, paths and descriptions for pages.
 4. Page bodies: read with `sn_get_documentation_page_content` in both versions for at most 20 pages (component pages first, five per call). Say how many you compared.
 
-**C. Neither** (no activity log and no baseline version): there is nothing to compare against. Say so, report only step 3, and stop.
+**C. Neither** (no activity log and no baseline version): changes cannot be listed, so do not stop empty. Call `sn_get_design_source_list` and, for each source with `lastImportedAt` after the start date, report its `lastImportResult` counts as one line under "Imports since <date>" (counts only, no names). Then do step 3, skip steps 4 to 6, and reply in the method C shape (see Output).
 
 ### 3. Add the documentation publish history
 
-Call `sn_admin_get_documentation_publish_history` (no `environment`, `limit` 50). Count the `Success` builds since the start date per environment, and note the last Live publish date and its `documentationUrl`. From the page list, count pages with `isPublished: false` or an `approvalState`: those changes are not live yet.
+Call `sn_admin_get_documentation_publish_history` (no `environment`, `limit` 10; call again with 50 only if the oldest build returned is after the start date). Count the `Success` builds since the start date per environment, and note the last Live publish date and its `documentationUrl`. Count pages not live yet: pages with `isPublished: false` from the page list, plus pages in review from `sn_get_documentation_page_list` called with `approvalState` set (it returns only those pages; it takes one state per call, so call it for `ReadyForReview`, `ChangesRequested` and `Approved`). Skip the `isPublished` count in method C.
 
 ### 4. Sort into sections
 
@@ -144,17 +144,22 @@ Compared <baseline> with <target> using <the activity log | a version comparison
 
 End with one question: "Want me to save this as an unpublished page in <group>, post it to <channel>, or both?" After a write, end with what was saved or posted, with its link, and "Not published."
 
+**Method C** (no baseline, no activity log): reply with the scope line, one sentence on why no changes can be listed (the design system has no released version to compare against and this connection has no activity log), the "Imports since <date>" line, the publish line, and: "Release a version in Supernova to make the next notes possible." Do not offer to save or post.
+
 ## When something fails
 
 - **A tool is missing**: skip what it feeds and list it under "Not covered". Without `sn_admin_write`, offer the notes in chat only. Without Slack, give the message as text.
 - **A call returns an error**: follow the next step the error text gives. If it gives none, skip that source, list it under "Not covered", and do not call that tool again. For a write, stop and report what was and was not saved.
 - **Nothing changed in the range**: say so in one line, with the range and the sources you checked, and stop.
-- **No baseline and no activity log**: say the design system has no released versions to compare against, report the publish history, and suggest releasing a version in Supernova to make the next notes possible.
+- **No baseline and no activity log**: use method C and its reply shape (Output).
 
 ## Gotchas
 
 - The token, component and page lists have no timestamps. Without the activity log, a date range can only be answered by comparing with the released version before that date.
-- A design system with only the shared draft has no baseline. One test system returned a single version, so method B was impossible there.
+- A design system with only the shared draft has no version baseline. One test system returned a single version, so method B was impossible there.
+- In method C, design source `lastImportResult` counts are the only change signal the data gives for a date range.
+- `sn_get_activity_event_list` is not exposed on every server. Check the tool list before choosing method A.
+- Publish history with `limit` 50 returned about 28,000 characters, back to 2024. Start with 10.
 - `changeLog` on a version is often null. Do not treat a missing changelog as "no changes".
 - Publish history lists builds, not the pages in them. It shows when documentation went live, not what changed.
 - The Release notes block in Supernova shows version changelogs, not these notes. Do not use it in place of the written page.

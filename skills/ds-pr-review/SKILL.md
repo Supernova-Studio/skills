@@ -65,13 +65,14 @@ Read `references/workspace-scope.md` and `references/datasets.md`.
 
 1. Call `sn_get_brand_list`. One dataset: use it. Several: ask which one this product uses, unless the repo makes it obvious (a brand name in the token import path).
 2. Get the diff from GitHub (see Companion tools). Leave out lockfiles, generated files (a "generated" or "do not edit" header), vendor code, snapshots and fixtures.
-3. Tell the user the scope in one line, for example "Reviewing PR #482 (14 files, 3 skipped as generated) against the Default dataset of Acme DS."
+3. Over about 2,000 changed lines, review UI files only and list the skipped files in the scope line.
+4. Tell the user the scope in one line, for example "Reviewing PR #482 (14 files, 3 skipped as generated) against the Default dataset of Acme DS."
 
 ### 2. Learn what the system has for this diff
 
 Read `references/code-components.md`. Do this once, before judging anything.
 
-1. **Components.** List the components the diff imports from the design system package, and the UI it builds by hand (a dropdown, a modal, a div with a click handler). Call `sn_get_code_component_list` with `query` set to 3 to 5 of those names plus their usual synonyms (`dropdown`, `select`, `menu`; `modal`, `dialog`) and `packageName: null`. Read only the first page. Call `sn_get_code_component_detail` for the components the diff uses or should use, to know their props, defaults and intended use.
+1. **Components.** List the components the diff imports from the design system package, and the UI it builds by hand (a dropdown, a modal, a div with a click handler). Call `sn_get_code_component_list` with `query` set to 3 to 5 of those names plus their usual synonyms (`dropdown`, `select`, `menu`; `modal`, `dialog`) and `packageName: null`. Read only the first page. Put rare names in their own call. If a queried name has no hit on the first page, query it alone before saying it doesn't exist. Call `sn_get_code_component_detail` for the components the diff uses or should use, to know their props, defaults and intended use.
 2. **Usage guidance.** Call `sn_search` with a few specific terms per component ("dialog footer", "button icon only"). Open a page with `sn_get_documentation_page_content` only when its preview shows real guidance. Call `sn_get_component_list` when you need the canonical name or a deprecation marker.
 3. **Tokens.** Read `references/tokens.md`. Find how the repo consumes tokens (step 3), then call `sn_get_token_group_list` and `sn_get_token_list` with `tokenTypes` set to the types the raw values need (`Color`, `Space`, `Dimension`, `BorderRadius`, `FontSize`, `Shadow`), not the whole list.
 
@@ -80,13 +81,14 @@ Read `references/code-components.md`. Do this once, before judging anything.
 A comment must name the token the way the author writes it in code, not the Supernova path.
 
 1. Find how this repo consumes tokens: CSS variables (`var(--…)`), a theme object (`theme.colors.…`), a Tailwind config or `@theme` block, or a generated tokens file. The generated files are the list of names that exist in code.
-2. Call `sn_get_token_property_list` with `includeValues: false`. If a property holds the code name (named like CSS, Typescript or Tailwind class, or described as "variable name to use in code"), `sn_get_token_detail` returns each token's code name in `properties`.
+2. Call `sn_get_token_property_list` with `includeValues: false`. If a property holds the code name (named like CSS, Typescript or Tailwind class, or described as "variable name to use in code"), `sn_get_token_detail` returns each token's code name in `properties`. If code-name properties disagree, prefer the one the CSS export pipeline writes to (`propertyToWriteNameTo`), else the one that matches the repo, and report the conflict as a system gap.
 3. Otherwise derive the name from the generated file's pattern. Exporters often add a prefix and the token type: in one system the path `Border Radius/Small` became `--ds-border-radius-border-radius-small`.
 4. Before you suggest a token, confirm that name exists in the repo. If it exists in Supernova but not in code (not exported, or a "Figma only" flag), it is a system gap, not an author error.
+5. If the repo defines tokens Supernova doesn't hold (Tailwind `@theme`, CSS variables, theme constants), name the repo token as the fix and list "repo tokens missing from Supernova" under System gaps.
 
 ### 4. Check in this order
 
-**1. Should this code exist?** The highest-value question, and the one nobody asks. If the PR hand-builds something the library already provides (a custom dropdown, a bespoke modal, a div that behaves like a button), that's the review. Say it first, before anything else. Everything downstream is moot. Name the code component and its package from step 2, and link its usage page when there is one.
+**1. Should this code exist?** The highest-value question, and the one nobody asks. If the PR hand-builds something the library already provides (a custom dropdown, a bespoke modal, a div that behaves like a button), that's the review. Say it first, before anything else. Everything downstream is moot. Name the code component and its package from step 2, and link its usage page when there is one. Confirm that package is a dependency in the repo's `package.json` before recommending it. If it isn't, the fix is the repo's own component, or a system gap.
 
 **2. Raw values.** Any hardcoded color, spacing, radius, font size or shadow. For each, name the token that should replace it, in its code form from step 3. A comment that says "use a token" without saying which token is a comment that costs the author ten minutes. Pick by usage, not by value: a border color gets a border token, text gets a text token. If no token fits, don't demand one. That's a system gap: route it (step 6). Do not make the author's PR the place where a token gap gets litigated.
 
@@ -103,7 +105,7 @@ Override CSS aimed at library internals is a red flag. It means the component is
 
 **5. Accessibility.** These are blocking. Not preferences.
 
-- `outline: none` without a replacement focus style.
+- `outline: none` without a replacement focus style, or with a replacement you cannot show meets 3:1. Say so under Notes.
 - `<div onClick>` where a `<button>` belongs.
 - Icon-only controls with no accessible name.
 - ARIA on elements that already have semantics.
@@ -179,3 +181,7 @@ End with one question: "Want me to post this review to the pull request?"
 - Usage pages can be unfilled templates ("🚧 To do", empty Do/Don't tables). That is not guidance; don't cite it, and a missing guideline the author needed is a system gap.
 - Token paths in Supernova are not code names. The code name lives in a token property when the export pipeline writes it there, or follows the exporter's pattern; always confirm it in the repo.
 - `sn_collect_agent_feedback` exists only on some connections (it records against the active Context). When it is missing, the System gaps section is the record.
+- `gh pr diff` has no path filter. One 259K-character diff had to be filtered to UI files locally.
+- With `button` in a five-name `sn_get_code_component_list` query, nine Button exports filled page 1 (about 35K characters) and Tabs never appeared. Rare names go in their own call.
+- Code-name token properties can disagree. In Dark Matter, "Syntax: Web" gives `--rs-color-…`, "CSS" gives `var(--ds-color-…)`, and "Typescript" and "Tailwind class" are empty.
+- A repo can have its own token layer (Tailwind `@theme`, CSS variables, theme constants) and no dependency on the Supernova code package. Check `package.json` before naming a package.

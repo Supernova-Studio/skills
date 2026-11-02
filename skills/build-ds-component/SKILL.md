@@ -8,7 +8,7 @@ metadata:
   personas: "Engineer"
   access: read
   prompt: "Build the Toast component from this Figma frame and add it to our library."
-  tools: "sn_read_skill_resource, sn_get_brand_list, sn_get_component_list, sn_get_component_detail, sn_get_code_component_list, sn_get_code_component_detail, sn_get_figma_component_list, sn_get_figma_component_detail, sn_get_storybook_story_list, sn_search, sn_get_documentation_page_content, sn_get_token_group_list, sn_get_token_list, sn_get_token_property_list, sn_get_token_detail, sn_collect_agent_feedback"
+  tools: "sn_read_skill_resource, sn_get_brand_list, sn_get_component_list, sn_get_component_detail, sn_get_component_property_list, sn_get_code_component_list, sn_get_code_component_detail, sn_get_figma_component_list, sn_get_figma_component_detail, sn_get_storybook_story_list, sn_search, sn_get_documentation_page_content, sn_get_token_group_list, sn_get_token_list, sn_get_token_property_list, sn_get_token_detail, sn_collect_agent_feedback"
   works-with: "Supernova, GitHub, Figma, Storybook"
   version: "0.1.0"
   status: draft
@@ -57,13 +57,15 @@ Code writes: on a new branch, never on main. Show the diff summary and wait for 
 
 ### 1. Set the scope
 
-Read `references/workspace-scope.md` and `references/datasets.md`. Call `sn_get_brand_list`; with several datasets, ask which one this library implements. Find the library package in the repo. Tell the user the scope in one line, for example "Building Toast in `@acme/ui` against the Default dataset of Acme DS."
+Read `references/workspace-scope.md` and `references/datasets.md`. Call `sn_get_brand_list`; with several datasets, ask which one this library implements. Find the library package in the repo. If the repo has no library package, ask whether the component belongs in a library repo or in this app's shared components folder. Tell the user the scope in one line, for example "Building Toast in `@acme/ui` against the Default dataset of Acme DS."
 
 ### 2. Stop before you build
 
 Read `references/components.md` and `references/code-components.md`. Three questions. If any answer is bad, raise it instead of building.
 
-1. **Does it already exist?** Search the library, including variants. Roughly half of "new" components are a variant of something shipped. Call `sn_get_code_component_list` with `query` set to the name and 2 to 4 synonyms (`toast`, `snackbar`, `notification`, `alert`) and `packageName: null`; read the first page only. Also check `sn_get_component_list` (follow `nextCursor`), `sn_get_figma_component_list` and `sn_search`, and search the repo. A close match is the answer: propose a variant or a prop on it.
+1. **Does it already exist?** Search the library, including variants. Roughly half of "new" components are a variant of something shipped. Call `sn_get_code_component_list` with `query` set to the name and 2 to 4 synonyms (`toast`, `snackbar`, `notification`, `alert`) and `packageName: null`; read the first page only. Put rare names in their own call. If a queried name has no hit on the first page, query it alone before saying it doesn't exist. Also check `sn_get_component_list` (follow `nextCursor`) and `sn_search`, and search the repo. Call `sn_get_figma_component_list` only when the code and canonical lists found nothing. A close match is the answer: propose a variant or a prop on it.
+   - Before recommending a code component, confirm its package is a dependency in the repo's `package.json`. If it isn't, the answer is the repo's own component, or a system gap.
+   - If the match is deprecated, find its replacement (status, description, docs) and ask before building. Resolve status Select values to option names with `sn_get_component_property_list` before you judge: option IDs can mislead.
 2. **Will more than one team use it?** If not, it belongs in that team's local code. Say so. Supernova cannot answer this; ask the user, and look for an owner or status property with `sn_get_component_detail` when the component already has a canonical record.
 3. **Is the design settled?** If the spec has open questions on the core structure, building now means building twice.
 
@@ -101,8 +103,8 @@ Read `references/tokens.md`.
 
 1. Find how the repo consumes tokens: CSS variables, a theme object, a Tailwind config or `@theme` block, or a generated tokens file.
 2. Call `sn_get_token_group_list`, then `sn_get_token_list` with `tokenTypes` for what the component needs. Choose semantic tokens (named for a purpose) over primitives.
-3. Call `sn_get_token_property_list` with `includeValues: false`. If a property holds the code name (CSS, Typescript, Tailwind class), `sn_get_token_detail` returns it. Otherwise follow the generated file's naming pattern.
-4. Confirm every name exists in the repo. If no token fits, stop and ask: that's a system decision, not a workaround.
+3. Call `sn_get_token_property_list` with `includeValues: false`. If a property holds the code name (CSS, Typescript, Tailwind class), `sn_get_token_detail` returns it. If code-name properties disagree, prefer the one the CSS export pipeline writes to (`propertyToWriteNameTo`), else the one that matches the repo, and report the conflict as a system gap. Otherwise follow the generated file's naming pattern.
+4. Confirm every name exists in the repo. If the repo defines tokens Supernova doesn't hold (Tailwind `@theme`, CSS variables, theme constants), name the repo token and list "repo tokens missing from Supernova" under System gaps. If no token fits, stop and ask: that's a system decision, not a workaround.
 
 ### 7. Implement on a new branch
 
@@ -148,6 +150,18 @@ For each system gap (a missing token, an unclear guideline, an override the syst
 
 ## Output
 
+If you stop at step 2, reply in this shape and nothing else:
+
+```markdown
+## <ComponentName>: stopped before building
+
+**Exists:** <the matching or close component, export and package, status — or "nothing found", with what you searched>
+**Questions:** <who else will use it, open design questions, a deprecated match's replacement>
+**Proposal:** <a variant or prop on the existing component, the repo's own component, or local code>
+```
+
+End with one question that asks for the decision, for example "Add a `tone` prop to Alert instead?"
+
 After step 5, reply with the prop table and the open questions only. When you finish, report in this shape. No raw tool output.
 
 ```markdown
@@ -169,7 +183,7 @@ End with one question that offers the next step, usually "Want me to push the br
 
 - **No local repo**: ask for one and stop. This skill writes code.
 - **A Supernova call returns an error**: follow the next step the error text gives. If it gives none, do not call that tool again, and say which check went ungrounded.
-- **It already exists**: stop and propose the variant or prop instead. Do not build a second one.
+- **It already exists**: stop and propose the variant or prop instead, in the stop shape in Output. Do not build a second one.
 - **No spec, or the core structure is unsettled**: list the open questions and stop.
 - **Tests or the type check fail and you cannot fix them**: do not commit. Report the failure.
 
@@ -181,3 +195,8 @@ End with one question that offers the next step, usually "Want me to push the br
 - Usage pages can be unfilled templates ("🚧 To do", empty Do/Don't tables). Treat them as no guidance.
 - Token paths in Supernova are not code names. Use the code-name token property when it exists, otherwise the generated file's pattern, and confirm every name in the repo.
 - A token flagged "Figma only" (or missing from the generated files) is not available in code. Using it is a system gap, not a fix.
+- With `button` in a five-name `sn_get_code_component_list` query, nine Button exports filled page 1 (about 35K characters) and Tabs never appeared. Rare names go in their own call.
+- `sn_get_figma_component_list` has no query parameter. Page 1 was about 30K characters.
+- Status option IDs can mislead: a status ID `status-deprecated` had the label "Stable" on another component. Read the option names.
+- Code-name token properties can disagree. In Dark Matter, "Syntax: Web" gives `--rs-color-…`, "CSS" gives `var(--ds-color-…)`, and "Typescript" and "Tailwind class" are empty.
+- A repo can have its own token layer (Tailwind `@theme`, CSS variables, theme constants) and no dependency on the Supernova code package. Check `package.json` before naming a package.

@@ -28,6 +28,7 @@ Reads documentation from another place, shows a page tree and how each piece con
 - There is no source to copy from. Use `document-new-components` to draft component pages.
 - The docs are already in Supernova and need fixing. Use `fix-documentation`.
 - The user wants tokens or components, not pages. Import them in Supernova from Figma or code; then `document-new-components` drafts their pages.
+- The source is not design system documentation (team notes, agent instructions). Say what it is and confirm the user wants it in this design system.
 
 ## Before you start
 
@@ -70,14 +71,14 @@ Read `references/workspace-scope.md` and `references/documentation-structure.md`
 
 Read the whole tree first, then page bodies. For a large source (more than about 40 pages), read the tree and a sample of 5 pages per top-level section before planning.
 
-- **Markdown or MDX:** folders are groups; `index.md` or `README.md` is the group's first page. Front matter `title` and `description` become page metadata; `sidebar_position`, `nav_order` or a number prefix set the order.
+- **Markdown or MDX:** folders are groups; `index.md` or `README.md` is the group's first page. Front matter `title` and `description` become page metadata; `sidebar_position`, `nav_order` or a number prefix set the order. With no order hint, keep alphabetical file order and say so. With no front matter `title`, use the H1, else the file name.
 - **Confluence and Notion:** the page tree is the group tree. A page with children becomes a group whose first page holds the parent's own content.
 - **Figma:** each top-level documentation frame is a page. Read text top to bottom by position, not by layer order. Large text is a heading.
 - **zeroheight:** categories are groups, pages are pages, and a page with tabs becomes a tabbed page.
 
 ### 3. Map the content
 
-Read `references/documentation-content.md`, `references/documentation-blocks.md` and `references/tabs.md`. Call `sn_admin_get_documentation_block_catalog`, then `sn_admin_get_documentation_block_schema` for the blocks you will use (up to eight per call), and read each block's guidance resource when the catalog names one.
+Read `references/documentation-content.md`. Read block references only for the content types the source contains. Markdown, GFM tables and code need none. When the source has callouts, images, tabs, embeds or live blocks, read `references/documentation-blocks.md` (and `references/tabs.md` for tabs), call `sn_admin_get_documentation_block_catalog`, then `sn_admin_get_documentation_block_schema` for the blocks you will use (up to eight per call), and read each block's guidance resource when the catalog names one.
 
 | Source content | Supernova |
 |---|---|
@@ -120,7 +121,7 @@ Follow `references/writing.md`: one action per `sn_admin_write` call, check `isE
 
 ### 6. Fix links
 
-After the last slice, rewrite links between migrated pages to `sn:item/<id>` with `WRITE_DOC_PAGE_CONTENT` `patches`, one page per call, and re-read each page. Links to pages outside the migration keep their original URL; list them.
+After the last slice, rewrite links between migrated pages to `sn:item/<id>` with `WRITE_DOC_PAGE_CONTENT` `patches`, one page per call, and re-read each page. Links to pages outside the migration keep their original URL; list them. A relative link to a file outside the migration has no URL: make it a "Needs a human" note, or ask for a base URL.
 
 ## Output
 
@@ -179,4 +180,7 @@ After the last slice, add "System gaps" (source features Supernova could not hol
 - A Callout holds one Markdown paragraph. Lists or code inside a source callout do not fit: keep the first paragraph in the callout and put the rest right after it.
 - The Columns variant shows as horizontal tabs in the editor and as columns only in the preview. Tell the user, so they do not think it failed.
 - Task lists (`- [ ]`) are not supported. Write them as plain bullets.
+- The block references plus the block catalog cost about 33K characters, even for plain Markdown. Skip them when the source has only Markdown, GFM tables and code.
+- A relative link (`../other/file.md`) to a file outside the migration has no URL to keep.
+- A Markdown folder can hold team notes or agent instructions, not design system docs. Check before planning.
 - zeroheight token and component blocks read live data from zeroheight. They only convert when the same token group or component already exists in Supernova; import those first if the user wants live blocks.

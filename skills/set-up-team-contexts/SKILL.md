@@ -54,15 +54,15 @@ In Supernova, an MCP server for a team is a **Context**. Say "MCP server" to the
 Read `references/workspace-scope.md`, `references/datasets.md`, `references/contexts.md` and `references/context-scope.md`.
 
 1. Call `sn_admin_get_current_context` for the design system's ID and name, and `sn_get_brand_list` for its datasets. Several datasets: ask which one each team uses.
-2. Call `sn_get_context_list`. Keep the Contexts whose `designSystemId` is this design system or `null`. Note any that already look like a team's (by name or description).
-3. Get from the user, for each team: name, platform and framework (web React, Android Compose, iOS SwiftUI), product area, and whether designers, engineers or both use the server. Ask once, in one message, only for what the request did not say.
+2. Call `sn_get_context_list` with `includeArchived: true`. Keep the Contexts whose `designSystemId` is this design system or `null`. Note any that already look like a team's (by name or description), active or archived.
 
 ### 2. Read what there is
 
 1. **Documentation**: call `sn_get_documentation_page_list` and follow `nextCursor`. Sort pages into foundations (colour, type, spacing, accessibility, content), components, patterns, platform pages (tabs or pages named React, Android, iOS, Figma) and getting started. For a product area, call `sn_search` with its terms to find pages about it.
-2. **Components**: call `sn_get_component_list`. Call `sn_get_code_component_list` with `query: null, packageName: null`, first page only, to see which packages and frameworks exist. If a team's framework has its own package, list it with `packageName` set.
+2. **Components**: call `sn_get_component_list`. Call `sn_get_code_component_list` with `query` set to three component names from that list (for example Button, Avatar, Switch) and `packageName: null`, first page only. Note each distinct `packageName`, and say other packages may exist. If a team's framework has its own package, list it with `packageName` set.
 3. **Tokens and themes**: tokens go to every team. Call `sn_get_token_theme_list` to see which themes exist (dark mode, brands, density).
-4. **Knowledge**: call `sn_get_knowledge_skill_list` and `sn_get_knowledge_file_list`. Read a description; open one with its detail tool only when the name and description do not say which team it is for.
+4. **Knowledge**: call `sn_get_knowledge_skill_list` and `sn_get_knowledge_file_list`. Read a description; open one with its detail tool only when the name and description do not say which team it is for. Knowledge files with empty descriptions: open at most 3; mark the rest "I can't tell".
+5. **Ask once.** After these reads, ask in one message for what the request and the data do not settle, with a proposed default for each (for example "Web: React, `@supernovaio/dm`, designers and engineers?"). Cover, for each team: name, platform and framework, product area, and whether designers, engineers or both use the server. In the same question, ask whether to update each existing server that looks like a team's, and report archived ones that match a team so no duplicate is created (they can be restored in Supernova).
 
 ### 3. Recommend a scope per team
 
@@ -70,7 +70,7 @@ Build one scope per team with every selection key set, so nothing depends on a d
 
 | Key | Include | Leave out |
 |---|---|---|
-| `documentation` | Foundations, getting started, the team's platform tabs, pages about its product area. Every page of a tab group by page `id`. | Other platforms' tabs (Android team: no React tabs), templates, test and `❌` pages. |
+| `documentation` | Foundations, getting started, the team's platform tabs, pages about its product area. Every page of a tab group by page `id`. Utility or hook pages for one framework count as that platform's pages. | Other platforms' tabs (Android team: no React tabs), templates, test and `❌` pages. |
 | `designComponents` | `includeAll`, or `includeIds` when the team uses a clear subset. | – |
 | `figmaComponents` | `includeAll` when designers use the server or engineers build from Figma. | Teams that never open Figma. |
 | `codeComponents` | The team's own package: `includeAll` when it is the only package, otherwise `includeIds`. | Packages for other frameworks. With none for the team's framework, `includeIds` with `[]`. |
@@ -149,5 +149,9 @@ End with: "Open each link to copy its connection details for the team, and turn 
 - In testing, a Context made in the Supernova app set every selection key, with `includeIds` and `[]` for "none". Do the same; what a missing key exposes is not documented.
 - Some Contexts return `scope: null`: no scope was ever saved. Do not call that "everything" or "nothing". Ask the user what it should expose before replacing it.
 - `sn_get_context_list` shows a Context's `brandId` as the dataset's `idInVersion`, and an app-made Context's `scope.designSystemId` can be `null` while the Context's own `designSystemId` is set. Copy both as they are.
+- `sn_get_context_list` leaves out archived Contexts by default. Pass `includeArchived: true`, or a team's archived server goes unseen and a duplicate gets created.
+- Code component list calls with `query: null` are too large to scan for packages. Query a few known component names; the packages found are a sample, not the full set.
+- Many knowledge files have empty descriptions, so their team cannot be told without opening them. Cap it at 3.
+- Some documentation pages are utilities or hooks for one framework (React hooks, for example). They belong to that platform's team.
 - Documentation selections take page `id`s from `sn_get_documentation_page_list` (checked against an app-made Context). Whether a group or tab group ID selects its pages is not documented: list every page, tabs included. Pages added later are not picked up by `includeIds`.
 - `isFeedbackCollectionEnabled` and the server's URL slug cannot be set through `sn_admin_write`. Send the user to the Context's link for those.
