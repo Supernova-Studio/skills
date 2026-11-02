@@ -10,7 +10,7 @@ metadata:
   prompt: "Clean up our tokens: fill in missing descriptions, fix the naming, and remove what nobody uses."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_token_group_list, sn_get_token_list, sn_get_token_detail, sn_get_token_usage, sn_get_design_source_list, sn_admin_write"
   works-with: "Supernova"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 

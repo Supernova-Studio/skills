@@ -10,7 +10,7 @@ metadata:
   prompt: "Audit our design system and give me the ten things to fix first."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_design_system_list, sn_get_token_group_list, sn_get_token_list, sn_get_token_detail, sn_get_design_source_list, sn_get_token_usage, sn_get_component_list, sn_get_figma_component_list, sn_get_code_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_feedback"
   works-with: "Supernova"
-  version: "0.3.0"
+  version: "0.3.1"
   status: draft
 ---
 

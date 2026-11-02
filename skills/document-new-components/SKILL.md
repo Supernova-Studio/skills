@@ -10,7 +10,7 @@ metadata:
   prompt: "We just imported the new Figma library. Draft pages for the new components, like the Tooltip page."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_design_source_list, sn_get_figma_component_list, sn_get_figma_component_detail, sn_get_component_list, sn_get_component_detail, sn_get_component_property_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_admin_get_documentation_block_catalog, sn_admin_get_documentation_block_schema, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova, Figma"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
