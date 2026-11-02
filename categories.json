@@ -1,27 +1,27 @@
 [
   {
-    "key": "setup",
-    "label": "Get set up",
-    "blurb": "Bring what you already have into Supernova, then let the agent build the structure."
-  },
-  {
     "key": "audit",
-    "label": "Audit what you have",
-    "blurb": "See what is inconsistent, missing or drifting before you change anything."
+    "label": "Check what you have",
+    "blurb": "Audit the system, a Figma design or a pull request, and see what to fix first."
   },
   {
-    "key": "maintain",
-    "label": "Maintain at scale",
-    "blurb": "One prompt, every page. The work that used to take a list and a week."
+    "key": "document",
+    "label": "Keep docs current",
+    "blurb": "Draft, fix and move documentation, and keep it in step with design and code."
   },
   {
-    "key": "create",
-    "label": "Create and reuse",
-    "blurb": "Start from a page you already trust instead of a blank one."
+    "key": "tokens",
+    "label": "Tokens and variables",
+    "blurb": "Clean up tokens, and replace hard-coded values in Figma and code."
+  },
+  {
+    "key": "build",
+    "label": "Build with the system",
+    "blurb": "Turn designs into specs and components that follow the system."
   },
   {
     "key": "improve",
-    "label": "Measure and improve",
-    "blurb": "Know what changed, who uses the system and what to fix next."
+    "label": "Close the loop",
+    "blurb": "Turn what agents get stuck on into fixes, and give each team its own context."
   }
 ]

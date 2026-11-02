@@ -7,7 +7,17 @@ import { join } from 'node:path'
 
 const root = join(import.meta.dirname, '..')
 const CATEGORIES = JSON.parse(readFileSync(join(root, 'categories.json'), 'utf8'))
-const REQUIRED = ['title', 'category', 'personas', 'access', 'prompt', 'tools', 'version', 'status']
+const REQUIRED = [
+  'title',
+  'category',
+  'personas',
+  'access',
+  'prompt',
+  'tools',
+  'works-with',
+  'version',
+  'status',
+]
 const errors = []
 
 /** Frontmatter is flat `key: value` plus one nested `metadata:` map. Quoted values are JSON strings. */
@@ -68,6 +78,7 @@ const skills = readdirSync(join(root, 'skills'), { withFileTypes: true })
       access: meta.access,
       prompt: meta.prompt,
       tools: (meta.tools ?? '').split(',').map((t) => t.trim()).filter(Boolean),
+      worksWith: (meta['works-with'] ?? '').split(',').map((t) => t.trim()).filter(Boolean),
       version: meta.version,
       status: meta.status,
       body,
@@ -85,8 +96,8 @@ const readme = readFileSync(readmePath, 'utf8')
 const table = CATEGORIES.map((c) => {
   const rows = skills
     .filter((s) => s.category === c.key)
-    .map((s) => `| [${s.title}](skills/${s.slug}/SKILL.md) | ${s.personas.join(', ')} | ${s.access} |`)
-  return `### ${c.label}\n\n| Skill | For | MCP |\n|---|---|---|\n${rows.join('\n')}`
+    .map((s) => `| [${s.title}](skills/${s.slug}/SKILL.md) | ${s.personas.join(', ')} | ${s.worksWith.join(', ')} | ${s.access} |`)
+  return `### ${c.label}\n\n| Skill | For | Works with | Access |\n|---|---|---|---|\n${rows.join('\n')}`
 }).join('\n\n')
 const nextReadme = readme.replace(
   /(<!-- skills:start -->\n)[\s\S]*(\n<!-- skills:end -->)/,

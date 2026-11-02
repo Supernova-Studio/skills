@@ -9,6 +9,7 @@ metadata:
   access: read
   prompt: "Audit our design system and give me the ten things to fix first."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_design_system_list, sn_get_token_group_list, sn_get_token_list, sn_get_token_usage, sn_get_component_list, sn_get_figma_component_list, sn_get_code_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_feedback"
+  works-with: "Supernova"
   version: "0.3.0"
   status: draft
 ---
@@ -26,7 +27,7 @@ Reads the whole design system and returns one report: a score for each area and 
 
 - The question is about one component, page or token. Answer it with the matching read tool instead.
 - The user wants something fixed. Use the skill for that job (see the table in step 8).
-- The user only wants documentation gaps (`find-documentation-gaps`) or only token cleanup (`token-hygiene`).
+- The user only wants documentation fixed (`fix-documentation`) or only token cleanup (`clean-up-tokens`).
 
 ## Before you start
 
@@ -151,15 +152,13 @@ Rank findings by impact:
 
 | Finding | Skill |
 |---|---|
-| Components without documentation, thin pages | `find-documentation-gaps`, then `component-page-from-prompt` |
-| Pages with inconsistent structure | `standardise-component-pages` |
-| Wrong guidance, stale, placeholder, unpublished and undescribed pages, `Incorrect` feedback on a page | `clean-up-documentation` |
-| Naming, spelling, wrong or missing token descriptions | `bulk-edit-tokens` |
-| Duplicate, unused and parallel tokens, no alias layer | `token-hygiene` |
-| Figma and code drift, imported twice, orphans | `figma-code-parity`, `figma-docs-parity` |
-| Components split by variant, near duplicates, deprecated components | `bulk-deprecate-components` |
+| Components without documentation | `document-new-components` |
+| Thin, wrong-guidance, stale, placeholder, unpublished and undescribed pages | `fix-documentation` |
+| Unresolved feedback, including `Incorrect` feedback on a page | `fix-from-feedback` |
+| Naming, spelling, descriptions, duplicate, unused and deprecated tokens | `clean-up-tokens` |
+| Figma, code and documentation drift | `sync-docs-with-design-and-code` |
 
-If no skill fits (for example, missing component descriptions), end the item with "→ fix in Supernova".
+If no skill fits (for example, components split by variant or near duplicates, which need a design decision), end the item with "→ fix in Supernova".
 
 ## Output
 
@@ -199,7 +198,7 @@ Themes: not checked; all values are base values.
 
 With several datasets, give each one its own Tokens and Components rows. Leave out the Datasets section when you audit one.
 
-End with one question that offers exactly one next step, usually fixing item 1 with its skill, for example "Want me to start on item 1 with `token-hygiene`?"
+End with one question that offers exactly one next step, usually fixing item 1 with its skill, for example "Want me to start on item 1 with `clean-up-tokens`?"
 
 ## When something fails
 
