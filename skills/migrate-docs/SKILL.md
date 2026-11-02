@@ -10,7 +10,7 @@ metadata:
   prompt: "Move our design system docs from zeroheight into Supernova. Show me the plan first."
   tools: "sn_read_skill_resource, sn_admin_get_current_context, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_admin_get_documentation_block_catalog, sn_admin_get_documentation_block_schema, sn_get_token_group_list, sn_get_component_list, sn_get_figma_component_list, sn_get_storybook_story_list, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova, Notion, Confluence, Figma, zeroheight"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -174,13 +174,9 @@ After the last slice, add "System gaps" (source features Supernova could not hol
 
 ## Gotchas
 
-- Omitting `afterPageId` or `afterGroupId` puts the item first in its group. Created in source order without them, a section comes out reversed.
+- Omitting `afterPageId` or `afterGroupId` puts the item first in its group, so a section created in source order comes out reversed. Always pass the previous sibling.
 - Notion and Confluence file URLs are signed and expire, so they are not public images. Download and upload them in the same session as the page write.
-- A page body H1 duplicates the page title. Drop it, and shift deeper headings up so none are skipped.
-- A Callout holds one Markdown paragraph. Lists or code inside a source callout do not fit: keep the first paragraph in the callout and put the rest right after it.
+- After dropping the H1, shift the deeper headings up one level so none are skipped.
+- A Callout holds one Markdown paragraph. When a source callout has lists or code, keep the first paragraph in the callout and put the rest right after it.
 - The Columns variant shows as horizontal tabs in the editor and as columns only in the preview. Tell the user, so they do not think it failed.
 - Task lists (`- [ ]`) are not supported. Write them as plain bullets.
-- The block references plus the block catalog cost about 33K characters, even for plain Markdown. Skip them when the source has only Markdown, GFM tables and code.
-- A relative link (`../other/file.md`) to a file outside the migration has no URL to keep.
-- A Markdown folder can hold team notes or agent instructions, not design system docs. Check before planning.
-- zeroheight token and component blocks read live data from zeroheight. They only convert when the same token group or component already exists in Supernova; import those first if the user wants live blocks.

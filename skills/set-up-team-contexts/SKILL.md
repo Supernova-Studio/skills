@@ -10,7 +10,7 @@ metadata:
   prompt: "Set up MCP servers for our Payments and Android teams with just what each of them needs."
   tools: "sn_read_skill_resource, sn_admin_get_current_context, sn_get_brand_list, sn_get_context_list, sn_get_documentation_page_list, sn_get_token_theme_list, sn_get_component_list, sn_get_code_component_list, sn_get_knowledge_skill_list, sn_get_knowledge_file_list, sn_search, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -59,10 +59,10 @@ Read `references/workspace-scope.md`, `references/datasets.md`, `references/cont
 ### 2. Read what there is
 
 1. **Documentation**: call `sn_get_documentation_page_list` and follow `nextCursor`. Sort pages into foundations (colour, type, spacing, accessibility, content), components, patterns, platform pages (tabs or pages named React, Android, iOS, Figma) and getting started. For a product area, call `sn_search` with its terms to find pages about it.
-2. **Components**: call `sn_get_component_list`. Call `sn_get_code_component_list` with `query` set to three component names from that list (for example Button, Avatar, Switch) and `packageName: null`, first page only. Note each distinct `packageName`, and say other packages may exist. If a team's framework has its own package, list it with `packageName` set.
+2. **Components**: call `sn_get_component_list`. Call `sn_get_code_component_list` with `query` set to three common component names from that list (for example Button) and `packageName: null`, first page only. Note each distinct `packageName`, and say other packages may exist. If a team's framework has its own package, list it with `packageName` set.
 3. **Tokens and themes**: tokens go to every team. Call `sn_get_token_theme_list` to see which themes exist (dark mode, brands, density).
 4. **Knowledge**: call `sn_get_knowledge_skill_list` and `sn_get_knowledge_file_list`. Read a description; open one with its detail tool only when the name and description do not say which team it is for. Knowledge files with empty descriptions: open at most 3; mark the rest "I can't tell".
-5. **Ask once.** After these reads, ask in one message for what the request and the data do not settle, with a proposed default for each (for example "Web: React, `@supernovaio/dm`, designers and engineers?"). Cover, for each team: name, platform and framework, product area, and whether designers, engineers or both use the server. In the same question, ask whether to update each existing server that looks like a team's, and report archived ones that match a team so no duplicate is created (they can be restored in Supernova).
+5. **Ask once.** After these reads, ask in one message for what the request and the data do not settle, with a proposed default for each (for example "Web: React, `@acme/react`, designers and engineers?"). Cover, for each team: name, platform and framework, product area, and whether designers, engineers or both use the server. In the same question, ask whether to update each existing server that looks like a team's, and report archived ones that match a team so no duplicate is created (they can be restored in Supernova).
 
 ### 3. Recommend a scope per team
 
@@ -146,12 +146,8 @@ End with: "Open each link to copy its connection details for the team, and turn 
 ## Gotchas
 
 - `UPDATE_CONTEXT_SCOPE`, and `UPDATE_CONTEXT` with `scope`, replace the whole scope. A key you leave out is removed. Always start from the current scope.
-- In testing, a Context made in the Supernova app set every selection key, with `includeIds` and `[]` for "none". Do the same; what a missing key exposes is not documented.
+- What a missing selection key exposes is not documented. Set every key, and use `includeIds: []` for "none".
 - Some Contexts return `scope: null`: no scope was ever saved. Do not call that "everything" or "nothing". Ask the user what it should expose before replacing it.
-- `sn_get_context_list` shows a Context's `brandId` as the dataset's `idInVersion`, and an app-made Context's `scope.designSystemId` can be `null` while the Context's own `designSystemId` is set. Copy both as they are.
-- `sn_get_context_list` leaves out archived Contexts by default. Pass `includeArchived: true`, or a team's archived server goes unseen and a duplicate gets created.
-- Code component list calls with `query: null` are too large to scan for packages. Query a few known component names; the packages found are a sample, not the full set.
-- Many knowledge files have empty descriptions, so their team cannot be told without opening them. Cap it at 3.
-- Some documentation pages are utilities or hooks for one framework (React hooks, for example). They belong to that platform's team.
-- Documentation selections take page `id`s from `sn_get_documentation_page_list` (checked against an app-made Context). Whether a group or tab group ID selects its pages is not documented: list every page, tabs included. Pages added later are not picked up by `includeIds`.
+- `sn_get_context_list` shows a Context's `brandId` as the dataset's `idInVersion`. For a Context made in the Supernova app, `scope.designSystemId` can be `null` while the Context's own `designSystemId` is set. Copy both as they are.
+- Documentation selections take page `id`s from `sn_get_documentation_page_list`. Whether a group or tab group ID selects its pages is not documented, so list every page, tabs included. Pages added later are not picked up by `includeIds`; tell the user.
 - `isFeedbackCollectionEnabled` and the server's URL slug cannot be set through `sn_admin_write`. Send the user to the Context's link for those.

@@ -10,7 +10,7 @@ metadata:
   prompt: "Go through the feedback agents left on our MCP servers and fix what you can in the docs."
   tools: "sn_read_skill_resource, sn_admin_get_current_context, sn_get_context_list, sn_get_feedback, sn_search, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_token_list, sn_get_component_list, sn_get_code_component_list, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -163,10 +163,7 @@ End with: "Nothing is published. Review the pages in Supernova and publish when 
 
 ## Gotchas
 
-- Feedback items name a `contextId` but no page, token or component. Find the target with `sn_search` and the conversation summary, and say when the match is a guess.
-- `sn_get_feedback` with `workspaceId` returns feedback from every design system in the workspace (in testing, from a Context of another system). Use `designSystemId`, plus `contextId` for workspace-level Contexts.
-- A Context that was archived can still have unresolved feedback. Read the Context list with `includeArchived: true` so every item maps to a name.
-- `sn_get_documentation_page_content` in `markdown` format drops blocks. Use the default `mdx-lite`.
-- A design system with no unresolved feedback can still have resolved items. Report their count so "nothing to do" does not read as "nothing collected".
-- Feedback collection is off for some Contexts (`isFeedbackCollectionEnabled: false`). Name each one, even when only one is off.
-- An `Incorrect` item is sometimes the agent's mistake, not the page's. Check the page before you change it.
+- Feedback items name a `contextId` but no page, token or component. Find the target with `sn_search` and the item's description, and say when the match is a guess.
+- `sn_get_feedback` with `workspaceId` returns feedback from every design system in the workspace. Use `designSystemId`, plus `contextId` for Contexts with no design system.
+- `sn_get_documentation_page_content` in `markdown` format drops blocks. Read in the default `mdx-lite`, including right before a write.
+- Some Contexts have feedback collection off (`isFeedbackCollectionEnabled: false`). Name each one in the report, so silence from them isn't read as "no problems".

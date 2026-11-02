@@ -10,7 +10,7 @@ metadata:
   prompt: "Build the Toast component from this Figma frame and add it to our library."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_get_component_list, sn_get_component_detail, sn_get_component_property_list, sn_get_code_component_list, sn_get_code_component_detail, sn_get_figma_component_list, sn_get_figma_component_detail, sn_get_storybook_story_list, sn_search, sn_get_documentation_page_content, sn_get_token_group_list, sn_get_token_list, sn_get_token_property_list, sn_get_token_detail, sn_collect_agent_feedback"
   works-with: "Supernova, GitHub, Figma, Storybook"
-  version: "0.1.0"
+  version: "0.1.1"
   status: draft
 ---
 
@@ -189,14 +189,8 @@ End with one question that offers the next step, usually "Want me to push the br
 
 ## Gotchas
 
-- `sn_get_code_component_list` is expensive even with a query; fuzzy search pulls in related components with long inherited prop types. Query a few names, read the first page, and get the clean prop table from `sn_get_code_component_detail`.
-- Library components may be split into one export per variant (`DMButtonPrimary`, `DMButtonNeutral`). Check that pattern before calling something "new", and before choosing a single component with a `variant` prop.
-- Supernova's imported Figma components show variants and properties, not layers, spacing or bound tokens. Without a Figma MCP, ask for those rather than guessing from a thumbnail.
+- `sn_get_code_component_list` is expensive even with a query: its fuzzy search pulls in related components with long prop types. A common name such as `button` can fill the first page, so other names in the same query never show up. Get the clean prop table from `sn_get_code_component_detail`.
+- A library can split one component into an export per variant (`AcmeButtonPrimary`, `AcmeButtonNeutral`). Check for that pattern before calling something "new", and before choosing a single component with a `variant` prop.
 - Usage pages can be unfilled templates ("🚧 To do", empty Do/Don't tables). Treat them as no guidance.
-- Token paths in Supernova are not code names. Use the code-name token property when it exists, otherwise the generated file's pattern, and confirm every name in the repo.
-- A token flagged "Figma only" (or missing from the generated files) is not available in code. Using it is a system gap, not a fix.
-- With `button` in a five-name `sn_get_code_component_list` query, nine Button exports filled page 1 (about 35K characters) and Tabs never appeared. Rare names go in their own call.
-- `sn_get_figma_component_list` has no query parameter. Page 1 was about 30K characters.
-- Status option IDs can mislead: a status ID `status-deprecated` had the label "Stable" on another component. Read the option names.
-- Code-name token properties can disagree. In Dark Matter, "Syntax: Web" gives `--rs-color-…`, "CSS" gives `var(--ds-color-…)`, and "Typescript" and "Tailwind class" are empty.
-- A repo can have its own token layer (Tailwind `@theme`, CSS variables, theme constants) and no dependency on the Supernova code package. Check `package.json` before naming a package.
+- A token flagged "Figma only", or missing from the generated files, does not exist in code. Using it is a system gap, not a fix.
+- `sn_get_figma_component_list` has no query parameter and its pages are large. You cannot search it by name, so read it only when the other searches found nothing.

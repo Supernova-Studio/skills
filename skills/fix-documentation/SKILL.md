@@ -10,7 +10,7 @@ metadata:
   prompt: "Fix the documentation issues from the audit: descriptions, empty template pages and the test pages."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_get_component_list, sn_get_component_detail, sn_get_figma_component_list, sn_get_figma_component_detail, sn_admin_get_documentation_block_catalog, sn_admin_get_documentation_block_schema, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova"
-  version: "0.1.1"
+  version: "0.1.2"
   status: draft
 ---
 
@@ -114,8 +114,8 @@ The plan and the final reply use the same shape. No raw JSON or MDX. At most 20 
 
 | Page | Gap | Before | After | State |
 |---|---|---|---|---|
-| Components / UI components / Banner | Description on 3 tabs | "..." | "Message about the whole page or app." | Ready for review |
-| Components / UI components / Tooltip | Thin page, no preview | Heading and 30 words | + Figma component block, + "Needs a human" note | Ready for review |
+| Components / Alert | Description on 3 tabs | "..." | "Short message about the state of a page or task." | Ready for review |
+| Components / Tooltip | Thin page, no preview | Heading and 30 words | + Figma component block, + "Needs a human" note | Ready for review |
 
 ### Needs a human
 - <Page>: <what is missing, one line each>
@@ -141,13 +141,5 @@ End with: "Nothing is published. Review the pages in Supernova and publish when 
 ## Gotchas
 
 - MCP has no action to unpublish a page. Deleting a published page in the draft takes it off the live site only at the next publish, which is the user's step. Say this when asking about placeholder pages.
-- Pages named `template` are often kept on purpose as the team's page template. Ask before deleting or renaming them, and leave their empty blocks alone.
-- Empty arrays are normal in many block attributes (`componentProperties={[]}`, `excludePropertyIds={[]}`). Only an empty `value` on a component prop block means nothing is selected.
-- `<SNImage />` without `src` and `<SNShortcut />` without `title` are unfilled blocks too.
-- A Figma detail call reports dead links in `missingIds`. A page can point at a Figma component that no longer exists.
-- Several canonical components can link to the same page. Use the one the page's blocks already select.
-- Tab pages share their tab group's description. Updating it on one tab changes all tabs; count it once.
-- Unfilled template blocks look like content in `mdx-lite`. Check that each block has something selected.
-- A component's documentation link can point at a tab group ID, not a page ID. Read the group's tabs.
-- `sn_get_component_property_list` with values also returns values that do not belong to components (token properties in one test). Read link values with `sn_get_component_detail` instead.
-- The tool also lists `DELETE_DOC_PAGE`; use `BULK_DELETE_DOC_PAGES` so the user confirms the whole set once.
+- A component's documentation link can point at a tab group ID, not a page ID. When it does, read the group's tabs.
+- `sn_get_component_property_list` with values can return values that don't belong to components, such as token properties. Read link values with `sn_get_component_detail` instead.

@@ -7,10 +7,10 @@ metadata:
   category: document
   personas: "Design system manager"
   access: write
-  prompt: "What changed in our design system since October 1? Write it up as release notes for designers and engineers."
+  prompt: "What changed in our design system since our last release? Write it up as release notes for designers and engineers."
   tools: "sn_read_skill_resource, sn_admin_get_current_context, sn_get_version_list, sn_get_brand_list, sn_get_design_source_list, sn_get_activity_event_list, sn_get_token_group_list, sn_get_token_list, sn_get_component_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_admin_get_documentation_publish_history, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova, Slack"
-  version: "0.1.1"
+  version: "0.1.2"
   status: draft
 ---
 
@@ -62,7 +62,7 @@ Read `references/workspace-scope.md` and `references/datasets.md`.
    - **Nothing given**: the latest released version. If there is none, ask for a date.
 4. The target is the shared draft unless the user names a later version. Say the notes include unreleased work in the shared draft.
 5. Call `sn_get_brand_list`. With several datasets, cover all and label each token and component line with its dataset, unless the user picks one. Documentation is shared by all datasets.
-6. Tell the user the range in one line, for example "Changes in Acme DS from 3.2 (12 Sep 2026) to the shared draft."
+6. Tell the user the range in one line, for example "Changes in Acme DS from 3.2 (<release date>) to the shared draft."
 
 ### 2. Collect the changes
 
@@ -124,7 +124,7 @@ Reply with the scope line from step 1, then the notes. At most 8 bullets per sec
 <One sentence: how many changes, and the one that matters most.>
 
 ## Added
-- **Component:** [Wizard Card](<url>), new in the Default dataset.
+- **Component:** [Stepper](<url>), new in the Default dataset.
 - **Tokens:** 12 colour tokens in `Semantic/Background` ([group](<url>)), e.g. `bg/subtle`, `bg/inverse`.
 
 ## Changed
@@ -133,10 +133,10 @@ Reply with the scope line from step 1, then the notes. At most 8 bullets per sec
 - **Docs:** rewrote [Button / Usage](<url>).
 
 ## Deprecated
-- **Component:** [Banner Upgrade](<url>), marked 🚫.
+- **Component:** [Legacy Banner](<url>), marked 🚫.
 
 ## Fixed
-- **Tokens:** `Innactive` renamed to `Inactive`.
+- **Tokens:** `Primery` renamed to `Primary`.
 
 ---
 Compared <baseline> with <target> using <the activity log | a version comparison>. Documentation was published <n> times to Live since <date> (last: <date>); <n> changed pages are not live yet. Not covered: <sampled pages, missing sources, empty sections>.
@@ -155,12 +155,8 @@ End with one question: "Want me to save this as an unpublished page in <group>, 
 
 ## Gotchas
 
-- The token, component and page lists have no timestamps. Without the activity log, a date range can only be answered by comparing with the released version before that date.
-- A design system with only the shared draft has no version baseline. One test system returned a single version, so method B was impossible there.
-- In method C, design source `lastImportResult` counts are the only change signal the data gives for a date range.
-- `sn_get_activity_event_list` is not exposed on every server. Check the tool list before choosing method A.
-- Publish history with `limit` 50 returned about 28,000 characters, back to 2024. Start with 10.
+- The token, component and page lists have no timestamps. Without the activity log, a date range can only be answered by comparing with a released version, and a design system with only the shared draft has none.
 - `changeLog` on a version is often null. Do not treat a missing changelog as "no changes".
 - Publish history lists builds, not the pages in them. It shows when documentation went live, not what changed.
 - The Release notes block in Supernova shows version changelogs, not these notes. Do not use it in place of the written page.
-- Token lists run to about 60,000 characters per page. Comparing two versions reads both; filter with `tokenTypes` when the user asks about one kind of token.
+- Token list pages can be very large, and a version comparison reads them twice. Filter with `tokenTypes` when the user asks about one kind of token.

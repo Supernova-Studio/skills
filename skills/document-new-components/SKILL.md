@@ -10,7 +10,7 @@ metadata:
   prompt: "We just imported the new Figma library. Draft pages for the new components, like the Tooltip page."
   tools: "sn_read_skill_resource, sn_get_brand_list, sn_admin_get_current_context, sn_get_design_source_list, sn_get_figma_component_list, sn_get_figma_component_detail, sn_get_component_list, sn_get_component_detail, sn_get_component_property_list, sn_get_documentation_page_list, sn_get_documentation_page_content, sn_admin_get_documentation_block_catalog, sn_admin_get_documentation_block_schema, sn_admin_get_entity_url, sn_admin_write"
   works-with: "Supernova, Figma"
-  version: "0.1.1"
+  version: "0.1.2"
   status: draft
 ---
 
@@ -56,7 +56,7 @@ Read `references/workspace-scope.md` and `references/datasets.md`. Components an
 
 ### 2. Find the components to document
 
-Read `references/figma-components.md` and `references/components.md`. Call `sn_get_figma_component_list` and `sn_get_component_list`, following `nextCursor` to the end. Call `sn_get_documentation_page_list` and follow `nextCursor` to the end. Match by name first. Then call `sn_get_component_detail` (up to 10 IDs per call) only for candidates, to read their Figma component link and documentation link values. Reading every component costs about one call per 10 components (about 50,000 characters for 63).
+Read `references/figma-components.md` and `references/components.md`. Call `sn_get_figma_component_list` and `sn_get_component_list`, following `nextCursor` to the end. Call `sn_get_documentation_page_list` and follow `nextCursor` to the end. Match by name first. Then call `sn_get_component_detail` (up to 10 IDs per call) only for candidates, to read their Figma component link and documentation link values. Reading every component costs one call per 10 components and returns a lot of text.
 
 - **Named components**: find each by name in both lists.
 - **"The new ones" or "after the import"**: call `sn_get_design_source_list`. Each Figma source shows `lastImportedAt` and how many components its last import created. Figma components carry no dates, so list the candidates: Figma components that no canonical component links to and that have no likely name match. Canonical components without a page are candidates too; sort those by `createdAt`, newest first. Tell the user the import count next to the candidates and let them pick.
@@ -64,7 +64,7 @@ Read `references/figma-components.md` and `references/components.md`. Call `sn_g
 
 When a Figma name appears more than once (`Radio` ×2, `Select` ×2), ask which one, for any selection mode. Before listing a Figma component as new, check whether a same-named canonical links to a missing or 🚫 ID; report it as "relink", not "new". Resolve status option names before judging a component's status (see Gotchas).
 
-Leave out, and list as left out: assets (`isAsset: true` in the Figma detail, or 0 variants and 0 properties with no canonical component or page of that name), names marked `🚫`, `[WIP]` or `(deprecated)`, and parts of another component (`Menu.Empty State`, `Cell Text`, `Icon Slot Wrapper`). List names with one 2-value Variant property and noun names (`Copy`, `Archive`, `PDF`) as "probably icons". Several Figma components named for a variant of one thing (`Button Primary`, `Button Critical`) are one component: ask before creating anything.
+Leave out, and list as left out: assets (`isAsset: true` in the Figma detail, or 0 variants and 0 properties with no canonical component or page of that name), names marked `🚫`, `[WIP]` or `(deprecated)`, and parts of another component (`Menu.Item`, `Table Cell`, `Icon Wrapper`). List names with one 2-value Variant property and noun names (`Copy`, `Archive`, `PDF`) as "probably icons". Several Figma components named for a variant of one thing (`Button Primary`, `Button Critical`) are one component: ask before creating anything.
 
 ### 3. Read each component's Figma data
 
@@ -144,16 +144,8 @@ End with: "Nothing is published. Fill the 'Needs a human' notes, then publish in
 
 ## Gotchas
 
-- Figma components carry no dates, so "the newest" cannot be read directly. The design source's last import only gives a count. Show candidates and let the user pick.
-- The imported list mixes components with icons, file-type glyphs and illustrations (about half of one test system). The list has no `isAsset`; only the detail does, and icons with a Size variant (`Copy`, `PDF`) still show `isAsset: false`. Use the counts and the names too.
-- Figma names can repeat (`Radio` ×2, `Select` ×2, `Menu.Group Indentation` ×2). Ask which one; never pick by list order.
-- A canonical component can link to a Figma component that is gone or marked 🚫. A same-named Figma component then looks new; it needs a relink, not a new page.
-- Reading every component's links costs about one `sn_get_component_detail` call per 10 components (about 50,000 characters for 63). Match by name first.
-- `sn_get_component_property_list` with values returns token property values paged together with component values. Use `includeValues: false` only, and read link values with `sn_get_component_detail`.
-- A status option ID can mislead: `status-deprecated` was displayed as "Stable". Resolve option names before judging status.
-- Sibling pages can mix tabbed and flat layouts. Copy the most recently created one and say which.
-- Variant property IDs can equal the property name (`Text alignment`), while others look like `6064:0`. Copy IDs from the detail response; never type them.
-- Figma descriptions are often empty. Then the intro is a "Needs a human" note, not an invented sentence.
-- `LINK_FIGMA_COMPONENT` takes the root component ID from the list, not a variant ID.
+- Imported Figma components often include icons, file-type glyphs and illustrations. `sn_get_figma_component_list` has no `isAsset` field; only the detail has it, and icons with a size variant (`Copy`, `PDF`) can still show `isAsset: false`. Judge by variant and property counts and by the names too.
+- A status option's ID can contradict its label: an ID that reads "deprecated" can belong to an option labelled "Stable". Resolve option names with `sn_get_component_property_list` before judging a component's status.
+- Figma property IDs sometimes equal the property name (`Text alignment`) and sometimes look like `1234:0`. Copy them from the detail response; never type them.
 - Some systems name components with a path (`Forms / Checkbox`), but Supernova has no component groups. Follow the existing naming only if the user confirms it in the plan.
-- An unpublished page goes live the next time anyone publishes all documentation. Say so in the closing line if the team publishes everything at once.
+- An unpublished page goes live the next time anyone publishes all documentation. If the team publishes everything at once, say so in the closing line.
